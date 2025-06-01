@@ -257,14 +257,28 @@ button:disabled {
   margin-bottom: 5px;
 }
 
+.spell-card.lumos { border-left-color: #ffeb3b; }
+.spell-card.wingardium { border-left-color: #9c27b0; }
+.spell-card.expelliarmus { border-left-color: #f44336; }
+.spell-card.avadaKedavra { border-left-color: #4caf50; }
+.spell-card.expectoPatronum { border-left-color: #2196f3; }
+.spell-card.reparo { border-left-color: #ff9800; }
+
 .spell-item.active {
   background: rgba(90, 70, 110, 0.9);
   box-shadow: 0 0 10px #9a6;
+  animation: pulse 1.5s infinite;
 }
 
 .spell-item.cooldown {
   opacity: 0.6;
   pointer-events: none;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 5px rgba(255,255,255,0.5); }
+  50% { box-shadow: 0 0 20px rgba(255,255,255,0.9); }
+  100% { box-shadow: 0 0 5px rgba(255,255,255,0.5); }
 }
 
 /* Адаптивность */
