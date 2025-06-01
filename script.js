@@ -27,8 +27,8 @@ const gameState = {
   faculties: {
     griffindor: {
       name: "Гриффиндор",
-      bonus: "Критический удар x3 чаще",
-      effect: (baseChance) => baseChance * 3
+      bonus: "+30% шанс критического удара",
+      effect: (baseChance) => baseChance * 1.3
     },
     slytherin: {
       name: "Слизерин",
@@ -49,7 +49,7 @@ const gameState = {
   spells: {
     lumos: {
       name: "Люмос",
-      description: "Увеличивает доход на 50% на 30 секунд",
+      description: "+50% к доходу на 30 секунд",
       cost: 100,
       unlocked: false,
       active: false,
@@ -60,6 +60,7 @@ const gameState = {
         gameState.spellMultiplier = 1.5;
         setTimeout(() => {
           gameState.spellMultiplier = 1;
+          renderSpells();
         }, 30000);
       }
     },
@@ -75,6 +76,7 @@ const gameState = {
       effect: () => {
         const originalInterval = gameState.autoClickInterval;
         clearInterval(gameState.autoClickInterval);
+        
         gameState.autoClickInterval = setInterval(() => {
           autoClick();
         }, originalInterval._idleTimeout / 2);
@@ -84,6 +86,7 @@ const gameState = {
           gameState.autoClickInterval = setInterval(() => {
             autoClick();
           }, originalInterval._idleTimeout);
+          renderSpells();
         }, 20000);
       }
     }
@@ -124,7 +127,6 @@ function initGame() {
   setupEventListeners();
   updateDisplay();
   
-  // Показываем выбор факультета если не выбран
   if (!gameState.faculty) {
     showModal(elements.facultyOverlay);
   }
@@ -199,8 +201,6 @@ function updateDisplay() {
   
   if (gameState.faculty) {
     elements.facultyDisplay.textContent = `Факультет: ${gameState.faculties[gameState.faculty].name}`;
-  } else {
-    elements.facultyDisplay.textContent = '';
   }
 }
 
@@ -285,7 +285,7 @@ function startAutoClick(interval) {
   
   // Эффект Пуффендуя
   if (gameState.faculty === 'hufflepuff') {
-    interval = Math.floor(interval / 1.25);
+    interval = gameState.faculties.hufflepuff.effect(interval);
   }
   
   gameState.autoClickInterval = setInterval(() => {
@@ -373,7 +373,7 @@ function renderSpells() {
     <h2>Заклинания</h2>
     ${Object.entries(gameState.spells).map(([key, spell]) => {
       const cooldownLeft = Math.max(0, spell.lastUsed + spell.cooldown * 1000 - Date.now());
-      const canCast = spell.unlocked && !spell.active && cooldownLeft <= 0;
+      const canCast = spell.unlocked && !spell.active && cooldownLeft <= 0 && gameState.galleons >= spell.cost;
       
       return `
         <div class="spell-card ${spell.active ? 'active' : ''} ${cooldownLeft > 0 ? 'cooldown' : ''}">
@@ -384,7 +384,7 @@ function renderSpells() {
             `<p>Восстановление: ${Math.ceil(cooldownLeft/1000)}сек</p>` : ''}
           <button 
             id="cast-${key}" 
-            ${!canCast || gameState.galleons < spell.cost ? 'disabled' : ''}
+            ${!canCast ? 'disabled' : ''}
           >
             ${spell.active ? 'Активно' : 'Произнести'}
           </button>
@@ -414,14 +414,11 @@ function castSpell(spellKey) {
   spell.active = true;
   spell.lastUsed = Date.now();
   
-  // Активируем эффект заклинания
   spell.effect();
   
-  // Деактивация после времени действия
   setTimeout(() => {
     spell.active = false;
     renderSpells();
-    showAchievement(`Заклинание ${spell.name} закончилось`);
   }, spell.duration * 1000);
   
   updateDisplay();
@@ -545,6 +542,11 @@ function setupEventListeners() {
       hideAllModals();
       showAchievement(`Добро пожаловать в ${gameState.faculties[faculty].name}!`);
       saveProgress();
+      
+      // Перезапускаем автокликер с новыми параметрами
+      if (gameState.level >= 2) {
+        startAutoClick(gameState.level >= 3 ? 2000 : 3000);
+      }
     });
   });
 
