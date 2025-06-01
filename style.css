@@ -1,73 +1,97 @@
-/* Твой фон и стили */
+/* Добавляем в начало, если нет */
+* {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: url('assets/background.jpg') no-repeat center center fixed;
   background-size: cover;
-  color: #d4e09b;
-  margin: 0;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 20px;
-  user-select: none;
 }
 
 .container {
-  max-width: 600px;
-  margin: auto;
+  background: rgba(0,0,0,0.65);
+  border-radius: 15px;
+  padding: 20px 40px;
+  width: 320px;
   text-align: center;
+  box-shadow: 0 0 20px #7a5;
 }
 
 header h1 {
   margin-bottom: 10px;
   font-size: 1.8em;
+  color: #e3c36f;
+  text-shadow: 1px 1px 3px #000;
 }
 
-/* Палочка */
+#galleons, #level {
+  font-size: 1.2em;
+  margin: 5px 0 15px;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px #000;
+}
+
+main {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 15px;
+  justify-items: center;
+}
+
 #click-wand {
   width: 150px;
-  height: auto;
   cursor: pointer;
+  outline: none;
   user-select: none;
-  margin: 20px 0;
-  transition: transform 0.1s ease;
+  pointer-events: auto;
+  transition: transform 0.2s ease;
 }
 
 #click-wand:active {
-  transform: scale(0.95);
+  transform: scale(0.9) rotate(-10deg);
 }
-
-#achievements {
-  margin-top: 20px;
-  font-weight: 700;
-  color: #a4d65e;
-  min-height: 24px;
-}
-
-/* Вкладки и кнопки */
 
 .tabs {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  margin: 15px 0;
+  gap: 15px;
 }
 
 .tab-button {
-  padding: 8px 20px;
+  padding: 8px 16px;
   font-size: 1em;
   border: none;
   border-radius: 8px;
-  background-color: rgba(73, 104, 52, 0.8);
+  background-color: #496834;
   color: #fff;
   cursor: pointer;
+  box-shadow: 0 4px 8px #283317;
   transition: background-color 0.3s ease;
 }
 
-.tab-button:hover,
+.tab-button:hover {
+  background-color: #7a5;
+}
+
 .tab-button.active {
-  background-color: rgba(122, 170, 85, 0.9);
+  background-color: #7a5;
+  font-weight: 700;
 }
 
 .tab-content {
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 10px;
   width: 100%;
@@ -77,55 +101,44 @@ header h1 {
   font-weight: 600;
   font-size: 1em;
   text-align: left;
-  user-select: text;
 }
 
 .hidden {
   display: none;
 }
 
-/* Магазин */
-
-.upgrade-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
+footer {
+  margin-top: 20px;
 }
 
-.upgrade-item button {
-  padding: 5px 12px;
-  border: none;
-  border-radius: 5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+#achievements {
+  font-size: 1em;
+  color: #cfd9a6;
+  min-height: 20px;
 }
 
-.can-buy {
-  background-color: #7a5;
-  color: #fff;
-}
-
-.can-buy:hover {
-  background-color: #9acb61;
-}
-
-.cannot-buy {
-  background-color: #555;
-  color: #aaa;
-  cursor: not-allowed;
+/* Адаптив */
+@media(max-width: 400px) {
+  .container {
+    width: 90vw;
+    padding: 15px 20px;
+  }
+  #click-wand {
+    width: 120px;
+  }
+  .tab-button {
+    font-size: 0.9em;
+    padding: 6px 12px;
+  }
 }
 
 /* Эффект бонуса */
-
 .bonus-effect {
   position: fixed;
-  font-weight: 700;
-  color: #a4d65e;
+  font-weight: bold;
+  color: #ffea00;
+  text-shadow: 0 0 5px #fff;
   pointer-events: none;
   user-select: none;
-  font-size: 1.3em;
-  text-shadow: 0 0 5px #a4d65e;
-  z-index: 1000;
+  z-index: 9999;
 }
