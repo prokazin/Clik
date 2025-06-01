@@ -30,9 +30,17 @@ const gameState = {
 
 // Инициализация игры
 function initGame() {
+  // Гарантированно скрываем все модальные окна
+  hideAllModals();
+  
   elements.username.textContent = window.Telegram?.WebApp?.initDataUnsafe?.user?.username || '';
   loadProgress();
   setupEventListeners();
+}
+
+function hideAllModals() {
+  elements.shopOverlay.classList.remove('active');
+  elements.leaderboardOverlay.classList.remove('active');
 }
 
 // Загрузка прогресса
@@ -267,17 +275,15 @@ function setupEventListeners() {
   document.querySelectorAll('.close-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      document.querySelectorAll('.overlay').forEach(el => {
-        el.classList.add('hidden');
-      });
+      hideAllModals();
     });
   });
 
   // Закрытие по клику вне окна
-  document.querySelectorAll('.overlay').forEach(overlay => {
+  [elements.shopOverlay, elements.leaderboardOverlay].forEach(overlay => {
     overlay.addEventListener('click', (e) => {
       if (e.target === overlay) {
-        overlay.classList.add('hidden');
+        hideAllModals();
       }
     });
   });
@@ -285,13 +291,13 @@ function setupEventListeners() {
   // Открытие магазина
   elements.btnShop.addEventListener('click', () => {
     renderShop();
-    elements.shopOverlay.classList.remove('hidden');
+    elements.shopOverlay.classList.add('active');
   });
 
   // Открытие рейтинга
   elements.btnLeaderboard.addEventListener('click', () => {
     renderLeaderboard();
-    elements.leaderboardOverlay.classList.remove('hidden');
+    elements.leaderboardOverlay.classList.add('active');
   });
 
   // Клик по палочке
@@ -299,4 +305,4 @@ function setupEventListeners() {
 }
 
 // Запуск игры
-initGame();
+document.addEventListener('DOMContentLoaded', initGame);
