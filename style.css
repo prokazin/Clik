@@ -1,24 +1,27 @@
-/* Базовые стили */
-
+/* Твой оригинальный фон и стили */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #222;
+  background: url('assets/background.jpg') no-repeat center center fixed;
+  background-size: cover;
   color: #d4e09b;
   margin: 0;
   padding: 20px;
   user-select: none;
 }
 
+/* Контейнер */
 .container {
   max-width: 600px;
   margin: auto;
   text-align: center;
 }
 
+/* Заголовок */
 header h1 {
   margin-bottom: 10px;
 }
 
+/* Палочка */
 #click-wand {
   width: 150px;
   height: auto;
@@ -32,6 +35,7 @@ header h1 {
   transform: scale(0.95);
 }
 
+/* Блок с достижениями */
 #achievements {
   margin-top: 20px;
   font-weight: 700;
@@ -53,7 +57,7 @@ header h1 {
   font-size: 1em;
   border: none;
   border-radius: 8px;
-  background-color: #496834;
+  background-color: rgba(73, 104, 52, 0.8);
   color: #fff;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -61,11 +65,11 @@ header h1 {
 
 .tab-button:hover,
 .tab-button.active {
-  background-color: #7a5;
+  background-color: rgba(122, 170, 85, 0.9);
 }
 
 .tab-content {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
   padding: 10px;
   width: 100%;
@@ -82,7 +86,7 @@ header h1 {
   display: none;
 }
 
-/* Стили для магазина */
+/* Магазин */
 
 .upgrade-item {
   display: flex;
