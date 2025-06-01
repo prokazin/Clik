@@ -301,3 +301,96 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+/* Добавляем в конец файла */
+
+/* Эффекты навыков */
+#wand-effects {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.skill-effect {
+  position: absolute;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Анимации эффектов */
+@keyframes sparkle {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes trail {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-50px); opacity: 0; }
+}
+
+/* Стили для навыков */
+.skill-item {
+  background: rgba(60, 40, 80, 0.7);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-left: 3px solid #7a5;
+}
+
+.skill-item h3 {
+  color: #e3c36f;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.skill-progress {
+  height: 10px;
+  background: #333;
+  border-radius: 5px;
+  margin: 5px 0;
+  overflow: hidden;
+}
+
+.skill-progress-bar {
+  height: 100%;
+  background: linear-gradient(to right, #7a5, #9c27b0);
+  transition: width 0.3s;
+}
+
+/* Критический удар */
+.critical-hit {
+  position: fixed;
+  font-size: 24px;
+  font-weight: bold;
+  color: gold;
+  text-shadow: 0 0 5px #000;
+  animation: criticalFloat 1s forwards;
+  z-index: 100;
+}
+
+@keyframes criticalFloat {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-100px) scale(2); opacity: 0; }
+}
+
+/* Эффект факультета */
+.faculty-effect {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, transparent 60%, rgba(255,215,0,0.3) 100%);
+  animation: facultyPulse 3s infinite;
+}
+
+@keyframes facultyPulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
