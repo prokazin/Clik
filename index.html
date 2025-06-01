@@ -7,24 +7,24 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Волшебный Кликер Хогвартса</h1>
-  <div id="user-name">Привет, <span id="username">Игрок</span>!</div>
-  <div id="galleons">Галлеоны: <span id="galleon-count">0</span></div>
-  
-  <!-- Картинка палочки -->
-  <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
+  <div class="container">
+    <header>
+      <h1>Волшебный Кликер Хогвартса</h1>
+      <div id="username"></div>
+      <div id="galleons">Галлеоны: <span id="galleons-count">0</span></div>
+      <div id="level">Уровень: <span id="level-count">1</span></div>
+    </header>
 
-  <div id="crit-effect"></div>
+    <main>
+      <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
+      <button id="show-leaderboard">Показать рейтинг</button>
+      <div id="leaderboard" class="hidden"></div>
+    </main>
 
-  <button id="buy-lumos">Купить Люмос (Автоклик) - 50 галлеонов</button>
-  <button id="activate-accio">Активировать Акцио (Бонус) - 100 галлеонов</button>
-
-  <h2>Достижения</h2>
-  <ul id="achievement-list"></ul>
-
-  <h2>Рейтинг игроков (ежедневный)</h2>
-  <button id="btn-load-leaderboard">Показать рейтинг</button>
-  <ul id="leader-list"></ul>
+    <footer>
+      <div id="achievements"></div>
+    </footer>
+  </div>
 
   <script src="script.js"></script>
 </body>
