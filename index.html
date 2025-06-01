@@ -2,31 +2,30 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Хогвартс</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>Хогвартс</h1>
-      <div id="galleons">Галлеоны: <span id="galleons-count">0</span></div>
-      <div id="level">Уровень: <span id="level-count">1</span></div>
-    </header>
+  <div id="game-container">
+    <h1>Хогвартс</h1>
 
-    <main>
-      <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
-      <div class="tabs">
-        <button id="tab-leaderboard" class="tab-button active">Рейтинг</button>
-        <button id="tab-shop" class="tab-button">Магазин</button>
-      </div>
-      <div id="leaderboard" class="tab-content"></div>
-      <div id="shop" class="tab-content hidden"></div>
-    </main>
+    <div id="wand-container">
+      <img id="wand" src="wand.png" alt="Палочка" />
+    </div>
 
-    <footer>
-      <div id="achievements"></div>
-    </footer>
+    <div id="stats">
+      <p>Галлеоны: <span id="galleons">0</span></p>
+      <p>Уровень палочки: <span id="wand-level">0</span></p>
+    </div>
+
+    <div id="tabs">
+      <button id="btn-shop">Магазин</button>
+      <button id="btn-leaderboard">Рейтинг игроков</button>
+    </div>
+
+    <div id="shop" class="tab-content hidden"></div>
+    <div id="leaderboard" class="tab-content hidden"></div>
   </div>
 
   <script src="script.js"></script>
