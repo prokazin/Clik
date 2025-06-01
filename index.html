@@ -5,23 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Волшебный Кликер Хогвартса</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <h1>Волшебный Кликер Хогвартса</h1>
-  <div id="user-name"></div>
-  <div id="galleons">0 💰</div>
-  <button id="click-wand">Кликнуть палочкой</button>
-  <div id="crit-effect" class="crit-effect"></div>
+  <div id="user-name">Привет, <span id="username">Игрок</span>!</div>
+  <div id="galleons">Галлеоны: <span id="galleon-count">0</span></div>
+  
+  <!-- Картинка палочки вместо кнопки -->
+  <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" />
 
-  <h2>Магазин</h2>
-  <button id="buy-lumos">Купить Люмос (100 галлеонов)</button>
-  <button id="activate-accio">Активировать Акцио (300 галлеонов, 10 сек x5)</button>
+  <div id="crit-effect"></div>
+
+  <button id="buy-lumos">Купить Люмос (Автоклик) - 50 галлеонов</button>
+  <button id="activate-accio">Активировать Акцио (Бонус) - 100 галлеонов</button>
 
   <h2>Достижения</h2>
   <ul id="achievement-list"></ul>
 
-  <h2>Рейтинг (локальный)</h2>
+  <h2>Рейтинг игроков</h2>
   <button id="btn-load-leaderboard">Показать рейтинг</button>
   <ul id="leader-list"></ul>
 
