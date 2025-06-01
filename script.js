@@ -1,7 +1,6 @@
 const galleonsCountEl = document.getElementById('galleons-count');
 const levelCountEl = document.getElementById('level-count');
 const clickWandBtn = document.getElementById('click-wand');
-const showLeaderboardBtn = document.getElementById('show-leaderboard'); // больше не используется
 const leaderboardEl = document.getElementById('leaderboard');
 const shopEl = document.getElementById('shop');
 const achievementsEl = document.getElementById('achievements');
