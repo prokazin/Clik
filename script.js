@@ -265,8 +265,20 @@ function resetProgress() {
 function setupEventListeners() {
   // Закрытие модальных окон
   document.querySelectorAll('.close-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.querySelectorAll('.overlay').forEach(el => {
+        el.classList.add('hidden');
+      });
+    });
+  });
+
+  // Закрытие по клику вне окна
+  document.querySelectorAll('.overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.classList.add('hidden');
+      }
     });
   });
 
