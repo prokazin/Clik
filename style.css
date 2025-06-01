@@ -1,6 +1,6 @@
-/* Предотвращаем приближение при двойном тапе и масштабирование */
 * {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent; /* Убирает серую подсветку на iOS/Android */
 }
 
 body {
@@ -13,7 +13,6 @@ body {
   grid-template-rows: auto;
   gap: 20px;
 
-  /* Фоновое изображение */
   background: url('assets/background.jpg') no-repeat center center fixed;
   background-size: cover;
 
@@ -53,10 +52,12 @@ h1, h2 {
   outline: none;
 }
 
-#click-wand:active,
 #click-wand:focus {
-  transform: scale(0.9) rotate(-10deg);
   outline: none;
+}
+
+#click-wand:active {
+  transform: scale(0.9) rotate(-10deg);
 }
 
 #crit-effect {
