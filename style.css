@@ -1,4 +1,3 @@
-/* Добавляем в начало, если нет */
 * {
   touch-action: manipulation;
   user-select: none;
@@ -24,7 +23,7 @@ body {
   background: rgba(0,0,0,0.65);
   border-radius: 15px;
   padding: 20px 40px;
-  width: 320px;
+  width: 360px;
   text-align: center;
   box-shadow: 0 0 20px #7a5;
 }
@@ -36,12 +35,6 @@ header h1 {
   text-shadow: 1px 1px 3px #000;
 }
 
-#username {
-  font-size: 1em;
-  margin-bottom: 5px;
-  color: #bfc9b8;
-}
-
 #galleons, #level {
   font-size: 1.2em;
   margin: 5px 0 15px;
@@ -51,9 +44,10 @@ header h1 {
 
 main {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   grid-gap: 15px;
   justify-items: center;
+  align-items: start;
 }
 
 #click-wand {
@@ -63,110 +57,70 @@ main {
   user-select: none;
   pointer-events: auto;
   transition: transform 0.2s ease;
+  grid-column: 1 / 3;
 }
 
 #click-wand:active {
   transform: scale(0.9) rotate(-10deg);
 }
 
-.buttons-row {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-button#show-leaderboard,
-button#show-shop {
-  padding: 10px 20px;
-  font-size: 1.1em;
-  border: none;
-  border-radius: 8px;
-  background-color: #7a5;
-  color: #fff;
-  cursor: pointer;
-  box-shadow: 0 4px 10px #496834;
-  transition: background-color 0.3s ease;
-}
-
-button#show-leaderboard:hover,
-button#show-shop:hover {
-  background-color: #96b864;
-}
-
-#leaderboard,
-#shop-items {
+#store, #leaderboard {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 10px;
   width: 100%;
-  max-height: 200px;
+  max-height: 250px;
   overflow-y: auto;
   color: #d4e09b;
   font-weight: 600;
   font-size: 1em;
   text-align: left;
+  /* теперь оба блока всегда видны, без скрытия */
+  display: block !important;
 }
 
-/* Модальные окна */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
+#store h2, #leaderboard h2 {
+  color: #e3c36f;
+  margin-bottom: 10px;
+  text-align: center;
+  text-shadow: 1px 1px 2px #000;
 }
 
-.modal-content {
-  background: #222;
-  border-radius: 15px;
-  padding: 20px 30px;
-  width: 320px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 0 15px #7a5;
-  position: relative;
-  color: #d4e09b;
-}
-
-/* Кнопка закрыть */
-.close-modal {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 1.5em;
-  background: none;
-  border: none;
-  color: #d4e09b;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-/* Элементы магазина */
-.shop-item {
+.store-item {
+  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 8px 0;
 }
 
-.shop-item button {
+.store-item button {
   background-color: #7a5;
   border: none;
   border-radius: 6px;
-  color: white;
-  font-weight: 700;
-  padding: 5px 12px;
+  padding: 6px 12px;
+  color: #fff;
   cursor: pointer;
+  font-weight: 600;
   transition: background-color 0.3s ease;
 }
 
-.shop-item button:hover {
+.store-item button:hover:enabled {
   background-color: #96b864;
+}
+
+.store-item button:disabled {
+  background-color: #4a6a3a;
+  cursor: default;
+}
+
+.bonus-effect {
+  position: fixed;
+  font-weight: bold;
+  color: #ffea00;
+  text-shadow: 0 0 5px #fff;
+  pointer-events: none;
+  user-select: none;
+  z-index: 9999;
 }
 
 footer {
@@ -177,35 +131,22 @@ footer {
   font-size: 1em;
   color: #cfd9a6;
   min-height: 20px;
+  text-align: center;
 }
 
 /* Адаптив */
-@media(max-width: 400px) {
+@media(max-width: 500px) {
   .container {
     width: 90vw;
     padding: 15px 20px;
   }
+  main {
+    grid-template-columns: 1fr;
+  }
   #click-wand {
     width: 120px;
   }
-  .buttons-row {
-    flex-direction: column;
-    gap: 8px;
+  #store, #leaderboard {
+    max-height: 150px;
   }
-  button#show-leaderboard,
-  button#show-shop {
-    font-size: 1em;
-    padding: 8px 20px;
-  }
-}
-
-/* Эффект бонуса */
-.bonus-effect {
-  position: fixed;
-  font-weight: bold;
-  color: #ffea00;
-  text-shadow: 0 0 5px #fff;
-  pointer-events: none;
-  user-select: none;
-  z-index: 9999;
 }
