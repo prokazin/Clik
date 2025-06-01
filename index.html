@@ -10,33 +10,21 @@
   <div class="container">
     <header>
       <h1>Волшебный Кликер Хогвартса</h1>
-      <div id="username"></div>
       <div id="galleons">Галлеоны: <span id="galleons-count">0</span></div>
       <div id="level">Уровень: <span id="level-count">1</span></div>
     </header>
 
     <main>
       <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
-      <div class="buttons-row">
-        <button id="show-shop">Магазин</button>
-        <button id="show-leaderboard">Показать рейтинг</button>
-      </div>
-      <!-- Модальное окно магазина -->
-      <div id="shop-modal" class="modal hidden">
-        <div class="modal-content">
-          <button class="close-modal" id="close-shop">&times;</button>
-          <h2>Магазин улучшений</h2>
-          <div id="shop-items"></div>
-        </div>
+      
+      <div id="store">
+        <h2>Магазин улучшений</h2>
+        <div id="store-items"></div>
       </div>
 
-      <!-- Модальное окно рейтинга -->
-      <div id="leaderboard-modal" class="modal hidden">
-        <div class="modal-content">
-          <button class="close-modal" id="close-leaderboard">&times;</button>
-          <h2>Рейтинг игроков</h2>
-          <div id="leaderboard"></div>
-        </div>
+      <div id="leaderboard">
+        <h2>Рейтинг игроков</h2>
+        <div id="leaderboard-list"></div>
       </div>
     </main>
 
