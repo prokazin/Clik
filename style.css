@@ -1,29 +1,144 @@
 body {
   font-family: Arial, sans-serif;
-  text-align: center;
-  padding: 10px;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  gap: 20px;
+
+  /* Фоновое изображение */
+  background: url('assets/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+
+  color: #fff;
+  text-shadow: 0 0 5px #000;
 }
 
-#click-wand, #buy-lumos, #activate-accio, #btn-load-leaderboard, #btn-close {
-  margin: 5px;
-  padding: 10px 20px;
+h1, h2 {
+  grid-column: 1 / -1;
+  text-align: center;
+  margin: 0;
+  padding: 10px 0;
+}
+
+#user-name {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-weight: bold;
   font-size: 1.2em;
+}
+
+#galleons {
+  grid-column: 1 / -1;
+  font-size: 1.5em;
+  text-align: center;
+  padding: 10px 0;
+}
+
+#click-wand {
+  grid-column: 1 / -1;
+  width: 150px;
+  height: auto;
   cursor: pointer;
+  justify-self: center;
+  user-select: none;
+  transition: transform 0.2s ease;
+}
+
+#click-wand:active {
+  transform: scale(0.9) rotate(-10deg);
 }
 
 #crit-effect {
+  grid-column: 1 / -1;
   font-weight: bold;
   font-size: 2em;
-  color: red;
+  color: #ef4444;
   opacity: 0;
   transition: opacity 0.5s;
   height: 40px;
+  text-align: center;
+}
+
+button {
+  font-size: 1em;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: white;
+  transition: background-color 0.3s ease;
+  color: black;
+}
+
+button:hover {
+  background-color: #ddd;
+}
+
+#buy-lumos {
+  grid-column: 1 / 2;
+  background-color: #10b981;
+  color: white;
+  border: none;
+}
+
+#buy-lumos:hover {
+  background-color: #059669;
+}
+
+#activate-accio {
+  grid-column: 2 / 3;
+  background-color: #f97316;
+  color: white;
+  border: none;
+}
+
+#activate-accio:hover {
+  background-color: #ea580c;
 }
 
 #achievement-list, #leader-list {
+  grid-column: 1 / -1;
+  max-height: 150px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 8px;
+  padding: 10px;
   list-style: none;
-  padding-left: 0;
-  max-width: 300px;
-  margin: 0 auto 20px auto;
-  text-align: left;
+  margin: 0;
+  color: black;
+}
+
+#btn-load-leaderboard {
+  grid-column: 1 / 2;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+}
+
+#btn-load-leaderboard:hover {
+  background-color: #1d4ed8;
+}
+
+#btn-close {
+  grid-column: 2 / 3;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+}
+
+#btn-close:hover {
+  background-color: #dc2626;
+}
+
+@media (max-width: 480px) {
+  body {
+    grid-template-columns: 1fr;
+  }
+
+  #buy-lumos, #activate-accio, #btn-load-leaderboard, #btn-close {
+    grid-column: 1 / -1;
+  }
 }
