@@ -1,19 +1,9 @@
 const galleonsCountEl = document.getElementById('galleons-count');
 const levelCountEl = document.getElementById('level-count');
 const clickWandBtn = document.getElementById('click-wand');
-const showLeaderboardBtn = document.getElementById('show-leaderboard');
-const showShopBtn = document.getElementById('show-shop');
-
-const leaderboardModal = document.getElementById('leaderboard-modal');
-const leaderboardEl = document.getElementById('leaderboard');
-const closeLeaderboardBtn = document.getElementById('close-leaderboard');
-
-const shopModal = document.getElementById('shop-modal');
-const shopItemsEl = document.getElementById('shop-items');
-const closeShopBtn = document.getElementById('close-shop');
-
+const leaderboardListEl = document.getElementById('leaderboard-list');
+const storeItemsEl = document.getElementById('store-items');
 const achievementsEl = document.getElementById('achievements');
-const usernameEl = document.getElementById('username');
 
 let galleons = 0;
 let level = 1;
@@ -22,228 +12,227 @@ const maxLevel = 4;
 let autoclickInterval = null;
 
 const username = window.Telegram?.WebApp?.initDataUnsafe?.user?.username || 'Игрок';
-usernameEl.textContent = `Привет, ${username}!`;
-
-// Апгрейды
-const upgrades = {
-  lumos: {
-    name: 'Люмос',
-    description: 'Автоклик: +1 галлеон каждые 3 сек.',
-    basePrice: 15,
-    price: 15,
-    level: 0,
-    effectActive: false,
-  },
-  accio: {
-    name: 'Акцио',
-    description: 'Бонус к клику +1 галлеон на 30 секунд',
-    basePrice: 25,
-    price: 25,
-    level: 0,
-    effectActive: false,
-    effectEndTime: 0,
-  },
-  avada: {
-    name: 'Авада Кедавра',
-    description: 'Атака на других (пока не реализовано)',
-    basePrice: 100,
-    price: 100,
-    level: 0,
-  },
-};
-
-const achievements = [];
-
-function saveProgress() {
-  const data = {
-    galleons,
-    level,
-    upgrades: {
-      lumos: upgrades.lumos.level,
-      accio: upgrades.accio.level,
-      avada: upgrades.avada.level,
-    },
-  };
-  localStorage.setItem('hp-clicker-save', JSON.stringify(data));
-}
 
 function loadProgress() {
-  const saved = localStorage.getItem('hp-clicker-save');
+  const saved = localStorage.getItem('hp_clicker_progress');
   if (saved) {
     try {
       const data = JSON.parse(saved);
       galleons = data.galleons || 0;
       level = data.level || 1;
-      upgrades.lumos.level = data.upgrades?.lumos || 0;
-      upgrades.accio.level = data.upgrades?.accio || 0;
-      upgrades.avada.level = data.upgrades?.avada || 0;
-      recalcUpgrades();
     } catch {
-      // ignore
+      galleons = 0;
+      level = 1;
     }
   }
+  updateDisplay();
+}
+
+function saveProgress() {
+  localStorage.setItem('hp_clicker_progress', JSON.stringify({ galleons, level }));
+  saveDailyLeaderboard();
 }
 
 function updateDisplay() {
   galleonsCountEl.textContent = galleons;
   levelCountEl.textContent = level;
+  updateStoreButtons();
 }
 
-function recalcUpgrades() {
-  // Пересчёт цены по уровню (пример экспоненциального роста)
-  for (const key in upgrades) {
-    upgrades[key].price = Math.floor(upgrades[key].basePrice * Math.pow(1.5, upgrades[key].level));
-  }
-  // Автоклик Люмос
-  if (upgrades.lumos.level > 0 && !upgrades.lumos.effectActive) {
-    startAutoclick();
-  } else if (upgrades.lumos.level === 0) {
-    stopAutoclick();
+function clickWand() {
+  const baseGain = 1;
+  const multiplierChance = Math.random();
+
+  let multiplier = 1;
+  if (multiplierChance < 0.15) multiplier = 5;
+  else if (multiplierChance < 0.3) multiplier = 4;
+  else if (multiplierChance < 0.5) multiplier = 3;
+  else if (multiplierChance < 0.7) multiplier = 2;
+
+  const gain = baseGain * multiplier;
+  galleons += gain;
+
+  showBonusEffect(gain, multiplier);
+
+  checkLevelUp();
+  updateDisplay();
+  saveProgress();
+}
+
+function showBonusEffect(gain, multiplier) {
+  const effect = document.createElement('div');
+  effect.className = 'bonus-effect';
+  effect.textContent = multiplier > 1 ? `+${gain} x${multiplier}!` : `+${gain}`;
+  
+  const rect = clickWandBtn.getBoundingClientRect();
+  effect.style.left = `${rect.left + rect.width / 2}px`;
+  effect.style.top = `${rect.top}px`;
+
+  document.body.appendChild(effect);
+
+  effect.animate([
+    { transform: 'translateY(0) scale(1)', opacity: 1 },
+    { transform: 'translateY(-50px) scale(1.5)', opacity: 0 }
+  ], {
+    duration: 1000,
+    easing: 'ease-out'
+  });
+
+  setTimeout(() => effect.remove(), 1000);
+}
+
+function checkLevelUp() {
+  const levelThresholds = [0, 10, 30, 70, 150];
+  if (level < maxLevel && galleons >= levelThresholds[level]) {
+    level++;
+    showAchievement(`Поздравляем! Ты достиг уровня ${level}`);
+    if (level === 2) startAutoClick();
   }
 }
 
-function startAutoclick() {
+function showAchievement(text) {
+  achievementsEl.textContent = text;
+  setTimeout(() => {
+    achievementsEl.textContent = '';
+  }, 3500);
+}
+
+// Автоклик (Люмос)
+function startAutoClick() {
   if (autoclickInterval) return;
-  upgrades.lumos.effectActive = true;
   autoclickInterval = setInterval(() => {
-    galleons += upgrades.lumos.level;
-    showBonusEffect(`+${upgrades.lumos.level} (Люмос)`);
+    galleons++;
     updateDisplay();
     saveProgress();
   }, 3000);
 }
 
-function stopAutoclick() {
+function stopAutoClick() {
   if (autoclickInterval) {
     clearInterval(autoclickInterval);
     autoclickInterval = null;
   }
-  upgrades.lumos.effectActive = false;
 }
 
-function showBonusEffect(text) {
-  const effectEl = document.createElement('div');
-  effectEl.classList.add('bonus-effect');
-  effectEl.textContent = text;
-  effectEl.style.left = `${clickWandBtn.getBoundingClientRect().left + 20}px`;
-  effectEl.style.top = `${clickWandBtn.getBoundingClientRect().top}px`;
-  document.body.appendChild(effectEl);
-  setTimeout(() => {
-    effectEl.remove();
-  }, 1500);
-}
-
-function onClickWand() {
-  // Случайный множитель x1-5
-  const multiplier = Math.floor(Math.random() * 5) + 1;
-  let gain = multiplier;
-
-  // Проверка бонуса Акцио (добавляет +1 на 30 сек)
-  if (upgrades.accio.effectActive && Date.now() < upgrades.accio.effectEndTime) {
-    gain += upgrades.accio.level; // каждый уровень добавляет +1
-  } else if (upgrades.accio.effectActive) {
-    upgrades.accio.effectActive = false;
-  }
-
-  galleons += gain;
-  showBonusEffect(`+${gain}`);
-  updateDisplay();
-  saveProgress();
-}
-
-function openLeaderboard() {
-  renderLeaderboard();
-  leaderboardModal.classList.remove('hidden');
-}
-
-function closeLeaderboard() {
-  leaderboardModal.classList.add('hidden');
-}
-
-function openShop() {
-  renderShop();
-  shopModal.classList.remove('hidden');
-}
-
-function closeShop() {
-  shopModal.classList.add('hidden');
-}
-
-function renderLeaderboard() {
-  // Пример локального рейтинга (можно заменить на Firebase или сервер)
-  // Топ 5 фиктивных игроков для примера
-  const topPlayers = [
-    { name: 'Гарри', score: 150 },
-    { name: username, score: galleons },
-    { name: 'Гермиона', score: 120 },
-    { name: 'Рон', score: 80 },
-    { name: 'Дамблдор', score: 50 },
-  ];
-
-  // Сортируем по убыванию
-  topPlayers.sort((a,b) => b.score - a.score);
-
-  let html = '<ol>';
-  topPlayers.forEach(p => {
-    html += `<li>${p.name}: ${p.score} галлеонов</li>`;
-  });
-  html += '</ol>';
-
-  leaderboardEl.innerHTML = html;
-}
-
-function renderShop() {
-  shopItemsEl.innerHTML = '';
-  for (const key in upgrades) {
-    const upg = upgrades[key];
-    const item = document.createElement('div');
-    item.classList.add('shop-item');
-
-    const info = document.createElement('div');
-    info.innerHTML = `<strong>${upg.name}</strong> — ${upg.description}<br>Уровень: ${upg.level} | Цена: ${upg.price} галлеонов`;
-
-    const buyBtn = document.createElement('button');
-    buyBtn.textContent = 'Купить';
-    buyBtn.disabled = galleons < upg.price;
-    buyBtn.addEventListener('click', () => buyUpgrade(key));
-
-    item.appendChild(info);
-    item.appendChild(buyBtn);
-
-    shopItemsEl.appendChild(item);
-  }
-}
-
-function buyUpgrade(key) {
-  const upg = upgrades[key];
-  if (galleons >= upg.price) {
-    galleons -= upg.price;
-    upg.level++;
-    // Пересчитать цену с ростом
-    upg.price = Math.floor(upg.basePrice * Math.pow(1.5, upg.level));
-
-    // Активируем эффекты сразу при покупке
-    if (key === 'lumos') {
-      recalcUpgrades();
-    } else if (key === 'accio') {
-      upgrades.accio.effectActive = true;
-      upgrades.accio.effectEndTime = Date.now() + 30_000; // 30 секунд
+// Магазин улучшений с ростом цены
+const storeItems = [
+  {
+    id: 'lumos',
+    name: 'Люмос (Автоклик)',
+    basePrice: 20,
+    price: 20,
+    levelRequired: 2,
+    owned: 0,
+    maxOwned: 10,
+    effect: () => {
+      startAutoClick();
     }
+  },
+  {
+    id: 'accio',
+    name: 'Акцио (Бонус)',
+    basePrice: 50,
+    price: 50,
+    levelRequired: 3,
+    owned: 0,
+    maxOwned: 5,
+    effect: () => {
+      galleons += 10;
+      showBonusEffect(10, 1);
+      updateDisplay();
+      saveProgress();
+    }
+  },
+  {
+    id: 'avada',
+    name: 'Авада (Атака)',
+    basePrice: 100,
+    price: 100,
+    levelRequired: 4,
+    owned: 0,
+    maxOwned: 3,
+    effect: () => {
+      galleons += 20;
+      showBonusEffect(20, 1);
+      updateDisplay();
+      saveProgress();
+    }
+  }
+];
 
+function updateStoreButtons() {
+  storeItemsEl.innerHTML = '';
+  storeItems.forEach(item => {
+    if (level >= item.levelRequired) {
+      const div = document.createElement('div');
+      div.className = 'store-item';
+      div.innerHTML = `
+        <span>${item.name} — Цена: ${item.price} галлеонов (Куплено: ${item.owned})</span>
+        <button ${galleons < item.price || item.owned >= item.maxOwned ? 'disabled' : ''} data-id="${item.id}">Купить</button>
+      `;
+      storeItemsEl.appendChild(div);
+
+      div.querySelector('button').addEventListener('click', () => {
+        buyStoreItem(item.id);
+      });
+    }
+  });
+}
+
+function buyStoreItem(id) {
+  const item = storeItems.find(i => i.id === id);
+  if (!item) return;
+
+  if (galleons >= item.price && item.owned < item.maxOwned) {
+    galleons -= item.price;
+    item.owned++;
+    item.price = Math.floor(item.basePrice * Math.pow(1.5, item.owned)); // цена растёт на 50% с каждым улучшением
+    item.effect();
+    updateStoreButtons();
     updateDisplay();
-    renderShop();
     saveProgress();
   }
 }
 
-clickWandBtn.addEventListener('click', onClickWand);
-showLeaderboardBtn.addEventListener('click', openLeaderboard);
-closeLeaderboardBtn.addEventListener('click', closeLeaderboard);
+// Локальный рейтинг игроков (демо)
+const dailyLeaderboardKey = 'hp_clicker_leaderboard';
 
-showShopBtn.addEventListener('click', openShop);
-closeShopBtn.addEventListener('click', closeShop);
+function saveDailyLeaderboard() {
+  let leaderboard = JSON.parse(localStorage.getItem(dailyLeaderboardKey)) || [];
+  const userIndex = leaderboard.findIndex(u => u.name === username);
+  if (userIndex >= 0) {
+    if (galleons > leaderboard[userIndex].score) {
+      leaderboard[userIndex].score = galleons;
+    }
+  } else {
+    leaderboard.push({ name: username, score: galleons });
+  }
+  leaderboard.sort((a,b) => b.score - a.score);
+  if (leaderboard.length > 10) leaderboard.length = 10;
+  localStorage.setItem(dailyLeaderboardKey, JSON.stringify(leaderboard));
+  displayLeaderboard(leaderboard);
+}
 
-// Загрузка прогресса и запуск
-loadProgress();
-updateDisplay();
-recalcUpgrades();
+function displayLeaderboard(leaderboard) {
+  leaderboardListEl.innerHTML = '';
+  leaderboard.forEach((player, index) => {
+    const div = document.createElement('div');
+    div.textContent = `${index + 1}. ${player.name} — ${player.score} галлеонов`;
+    leaderboardListEl.appendChild(div);
+  });
+}
+
+// Инициализация
+function init() {
+  loadProgress();
+  saveDailyLeaderboard();
+  updateStoreButtons();
+
+  clickWandBtn.addEventListener('click', clickWand);
+
+  // Магазин и рейтинг показываем сразу и всегда
+  document.getElementById('store').style.display = 'block';
+  document.getElementById('leaderboard').style.display = 'block';
+}
+
+init();
