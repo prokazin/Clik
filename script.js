@@ -22,8 +22,8 @@ const elements = {
 const gameState = {
   galleons: 0,
   level: 1,
-  maxLevel: 5,
-  levelThresholds: [0, 50, 150, 400, 1000, 2500],
+  maxLevel: 10,
+  levelThresholds: [0, 50, 150, 400, 1000, 2500, 5000, 10000, 25000, 50000],
   faculty: null,
   faculties: {
     griffindor: {
@@ -59,15 +59,12 @@ const gameState = {
       lastUsed: 0,
       effect: () => {
         gameState.spellMultiplier = 1.5;
-        setTimeout(() => {
-          gameState.spellMultiplier = 1;
-          renderSpells();
-        }, 30000);
+        showAchievement("Яркий свет Люмос освещает ваш путь!");
       }
     },
     wingardium: {
       name: "Вингардиум Левиоса",
-      description: "Удваивает скорость автокликера на 20 секунд",
+      description: "Удваивает доход от автокликера на 20 секунд",
       cost: 150,
       unlocked: false,
       active: false,
@@ -75,20 +72,62 @@ const gameState = {
       cooldown: 90,
       lastUsed: 0,
       effect: () => {
-        const originalInterval = gameState.autoClickInterval;
+        gameState.autoClickBoost = 2;
+        showAchievement("Предметы парят в воздухе!");
+      }
+    },
+    expelliarmus: {
+      name: "Экспеллиармус",
+      description: "Мгновенно дает 200 галлеонов",
+      cost: 300,
+      unlocked: false,
+      active: false,
+      cooldown: 180,
+      effect: () => {
+        gameState.galleons += 200;
+        showAchievement("Золото улетает прямиком в ваш карман!");
+      }
+    },
+    avadaKedavra: {
+      name: "Авада Кедавра",
+      description: "Утраивает доход от кликов на 15 секунд",
+      cost: 500,
+      unlocked: false,
+      active: false,
+      duration: 15,
+      cooldown: 300,
+      effect: () => {
+        gameState.spellMultiplier = 3;
+        showAchievement("Смертоносный зеленый свет... но деньги целы!");
+      }
+    },
+    expectoPatronum: {
+      name: "Экспекто Патронум",
+      description: "Автокликер работает в 3 раза быстрее 30 секунд",
+      cost: 400,
+      unlocked: false,
+      active: false,
+      duration: 30,
+      cooldown: 240,
+      effect: () => {
+        const originalSpeed = gameState.autoClickInterval._idleTimeout;
         clearInterval(gameState.autoClickInterval);
-        
-        gameState.autoClickInterval = setInterval(() => {
-          autoClick();
-        }, originalInterval._idleTimeout / 2);
-        
-        setTimeout(() => {
-          clearInterval(gameState.autoClickInterval);
-          gameState.autoClickInterval = setInterval(() => {
-            autoClick();
-          }, originalInterval._idleTimeout);
-          renderSpells();
-        }, 20000);
+        gameState.autoClickInterval = setInterval(autoClick, originalSpeed / 3);
+        showAchievement("Ваш патронус защищает кошелек!");
+      }
+    },
+    reparo: {
+      name: "Репаро",
+      description: "Сбрасывает все таймеры заклинаний",
+      cost: 250,
+      unlocked: false,
+      active: false,
+      cooldown: 300,
+      effect: () => {
+        Object.values(gameState.spells).forEach(spell => {
+          spell.lastUsed = 0;
+        });
+        showAchievement("Все заклинания восстановлены!");
       }
     }
   },
@@ -117,6 +156,7 @@ const gameState = {
   },
   lastClickTime: 0,
   autoClickInterval: null,
+  autoClickBoost: 1,
   totalClicks: 0,
   spellMultiplier: 1
 };
@@ -244,11 +284,13 @@ function checkLevelUp() {
     gameState.level++;
     
     // Разблокировка заклинаний
-    if (gameState.level >= 2) {
-      gameState.spells.lumos.unlocked = true;
-    }
-    if (gameState.level >= 3) {
-      gameState.spells.wingardium.unlocked = true;
+    if (gameState.level >= 2) gameState.spells.lumos.unlocked = true;
+    if (gameState.level >= 3) gameState.spells.wingardium.unlocked = true;
+    if (gameState.level >= 4) gameState.spells.expelliarmus.unlocked = true;
+    if (gameState.level >= 5) {
+      gameState.spells.avadaKedavra.unlocked = true;
+      gameState.spells.expectoPatronum.unlocked = true;
+      gameState.spells.reparo.unlocked = true;
     }
     
     if (gameState.level === 2) {
@@ -293,7 +335,11 @@ function autoClick() {
     baseGain = gameState.faculties.slytherin.effect(baseGain);
   }
   
-  gameState.galleons += Math.floor(baseGain * gameState.spellMultiplier);
+  // Применяем все активные эффекты
+  let totalGain = baseGain * gameState.spellMultiplier;
+  if (gameState.autoClickBoost) totalGain *= gameState.autoClickBoost;
+  
+  gameState.galleons += Math.floor(totalGain);
   updateDisplay();
   saveProgress();
 }
@@ -310,7 +356,7 @@ function renderShop() {
       }
       
       return `
-        <div class="upgrade-card">
+        <div class="upgrade-item">
           <h3>${item.name} (Ур. ${item.level})</h3>
           <p>${item.description}</p>
           <button 
@@ -365,7 +411,7 @@ function renderSpells() {
       const canCast = spell.unlocked && !spell.active && cooldownLeft <= 0 && gameState.galleons >= spell.cost;
       
       return `
-        <div class="spell-card ${spell.active ? 'active' : ''} ${cooldownLeft > 0 ? 'cooldown' : ''}">
+        <div class="spell-item spell-card ${key} ${spell.active ? 'active' : ''} ${cooldownLeft > 0 ? 'cooldown' : ''}">
           <h3>${spell.name}</h3>
           <p>${spell.description}</p>
           <p>Стоимость: ${spell.cost} галлеонов</p>
@@ -405,15 +451,25 @@ function castSpell(spellKey) {
   
   spell.effect();
   
-  setTimeout(() => {
-    spell.active = false;
-    renderSpells();
-  }, spell.duration * 1000);
+  if (spell.duration) {
+    setTimeout(() => {
+      spell.active = false;
+      if (spellKey === 'wingardium') gameState.autoClickBoost = 1;
+      if (spellKey === 'lumos' || spellKey === 'avadaKedavra') {
+        gameState.spellMultiplier = 1;
+      }
+      if (spellKey === 'expectoPatronum') {
+        const originalSpeed = gameState.autoClickInterval._idleTimeout * 3;
+        clearInterval(gameState.autoClickInterval);
+        gameState.autoClickInterval = setInterval(autoClick, originalSpeed);
+      }
+      renderSpells();
+    }, spell.duration * 1000);
+  }
   
   updateDisplay();
   renderSpells();
   saveProgress();
-  showAchievement(`Заклинание ${spell.name} активировано!`);
 }
 
 // Таблица лидеров
@@ -424,7 +480,7 @@ function renderLeaderboard() {
     ${leaderboard.map((player, index) => `
       <div class="leaderboard-entry">
         <span>${index + 1}. ${player.name}</span>
-        <span>${Math.floor(player.score)}</span>
+        <span>${Math.floor(player.score)} галлеонов</span>
       </div>
     `).join('')}
   `;
