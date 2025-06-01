@@ -10,7 +10,6 @@ const activateAccioBtn = document.getElementById('activate-accio');
 const achievementListEl = document.getElementById('achievement-list');
 const leaderListEl = document.getElementById('leader-list');
 const loadLeaderboardBtn = document.getElementById('btn-load-leaderboard');
-const closeBtn = document.getElementById('btn-close');
 
 let galleons = 0;
 let level = 1;
@@ -129,10 +128,6 @@ activateAccioBtn.onclick = () => {
 loadLeaderboardBtn.onclick = () => {
   alert('Рейтинг пока не реализован без Firebase.');
   // Здесь можно будет подключить Telegram API или сервер для рейтинга
-};
-
-closeBtn.onclick = () => {
-  tg.close();
 };
 
 loadProgress();
