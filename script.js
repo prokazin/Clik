@@ -1,193 +1,175 @@
-const tg = window.Telegram.WebApp;
-tg.expand();
-
-const usernameEl = document.getElementById('username');
-const galleonCountEl = document.getElementById('galleon-count');
+const galleonsCountEl = document.getElementById('galleons-count');
+const levelCountEl = document.getElementById('level-count');
 const clickWandBtn = document.getElementById('click-wand');
-const critEffectEl = document.getElementById('crit-effect');
-const buyLumosBtn = document.getElementById('buy-lumos');
-const activateAccioBtn = document.getElementById('activate-accio');
-const achievementListEl = document.getElementById('achievement-list');
-const leaderListEl = document.getElementById('leader-list');
-const loadLeaderboardBtn = document.getElementById('btn-load-leaderboard');
+const showLeaderboardBtn = document.getElementById('show-leaderboard');
+const leaderboardEl = document.getElementById('leaderboard');
+const achievementsEl = document.getElementById('achievements');
+const usernameEl = document.getElementById('username');
 
 let galleons = 0;
 let level = 1;
-let lumosBought = false;
-let accioActive = false;
-let achievements = [];
+const maxLevel = 4;
 
-usernameEl.textContent = tg.initDataUnsafe?.user?.username || 'Игрок';
+let autclickInterval = null;
 
-// Ключ для сохранения прогресса в Telegram WebApp Storage
-const STORAGE_KEY = 'hp_clicker_progress';
-// Ключ для рейтинга (простой дневной рейтинг в localStorage)
-const LEADERBOARD_KEY = 'hp_clicker_leaderboard';
+const username = window.Telegram?.WebApp?.initDataUnsafe?.user?.username || 'Игрок';
+usernameEl.textContent = `Привет, ${username}!`;
 
 function loadProgress() {
-  const dataStr = localStorage.getItem(STORAGE_KEY);
-  if (dataStr) {
+  const saved = localStorage.getItem('hp_clicker_progress');
+  if (saved) {
     try {
-      const data = JSON.parse(dataStr);
+      const data = JSON.parse(saved);
       galleons = data.galleons || 0;
       level = data.level || 1;
-      lumosBought = data.lumosBought || false;
-      accioActive = data.accioActive || false;
-      achievements = data.achievements || [];
-    } catch {}
+    } catch {
+      galleons = 0;
+      level = 1;
+    }
   }
+  updateDisplay();
 }
 
 function saveProgress() {
-  const data = { galleons, level, lumosBought, accioActive, achievements };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  localStorage.setItem('hp_clicker_progress', JSON.stringify({ galleons, level }));
+  saveDailyLeaderboard();
 }
 
-// Обновляем UI
-function updateUI() {
-  galleonCountEl.textContent = galleons;
-  buyLumosBtn.disabled = lumosBought || galleons < 50;
-  activateAccioBtn.disabled = accioActive || galleons < 100;
-
-  achievementListEl.innerHTML = '';
-  if (achievements.length === 0) {
-    achievementListEl.innerHTML = '<li>Пока нет достижений</li>';
-  } else {
-    achievements.forEach(a => {
-      const li = document.createElement('li');
-      li.textContent = a;
-      achievementListEl.appendChild(li);
-    });
-  }
+function updateDisplay() {
+  galleonsCountEl.textContent = galleons;
+  levelCountEl.textContent = level;
 }
 
-// Получить случайный множитель x1-x5
-function getCritMultiplier() {
-  const rand = Math.random();
-  if (rand < 0.1) return 5;
-  if (rand < 0.25) return 4;
-  if (rand < 0.5) return 3;
-  if (rand < 0.75) return 2;
-  return 1;
-}
+function clickWand() {
+  const baseGain = 1;
+  const multiplierChance = Math.random();
 
-function showCritEffect(multiplier) {
-  if (multiplier === 1) return;
-  critEffectEl.textContent = `x${multiplier}!`;
-  critEffectEl.style.opacity = '1';
-  setTimeout(() => {
-    critEffectEl.style.opacity = '0';
-  }, 1000);
-}
+  let multiplier = 1;
+  if (multiplierChance < 0.15) multiplier = 5;
+  else if (multiplierChance < 0.3) multiplier = 4;
+  else if (multiplierChance < 0.5) multiplier = 3;
+  else if (multiplierChance < 0.7) multiplier = 2;
 
-// Клик по палочке
-clickWandBtn.onclick = () => {
-  let multiplier = getCritMultiplier();
-  let gain = 1 * multiplier;
-
-  if (accioActive) gain *= 2;
-
+  const gain = baseGain * multiplier;
   galleons += gain;
 
-  if (galleons >= 100 && !achievements.includes('Собрал 100 галлеонов')) {
-    achievements.push('Собрал 100 галлеонов');
-  }
+  showBonusEffect(gain, multiplier);
 
-  updateLeaderboard(galleons);
-
-  showCritEffect(multiplier);
-  updateUI();
+  checkLevelUp();
+  updateDisplay();
   saveProgress();
-};
-
-// Автоклик от Люмос
-let lumosInterval = null;
-
-buyLumosBtn.onclick = () => {
-  if (galleons < 50 || lumosBought) return;
-  galleons -= 50;
-  lumosBought = true;
-  lumosInterval = setInterval(() => {
-    galleons += 1;
-    updateLeaderboard(galleons);
-    updateUI();
-    saveProgress();
-  }, 1000);
-  updateUI();
-  saveProgress();
-};
-
-// Активировать бонус Акцио
-activateAccioBtn.onclick = () => {
-  if (galleons < 100 || accioActive) return;
-  galleons -= 100;
-  accioActive = true;
-  updateUI();
-  saveProgress();
-
-  setTimeout(() => {
-    accioActive = false;
-    updateUI();
-    saveProgress();
-  }, 15000);
-};
-
-// Рейтинг игроков в localStorage (по username и галлеонам)
-function updateLeaderboard(score) {
-  if (!usernameEl.textContent) return;
-
-  let leaderboard = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)) || [];
-
-  // Сегодняшняя дата
-  const today = new Date().toISOString().slice(0, 10);
-
-  // Фильтруем по сегодняшнему дню
-  leaderboard = leaderboard.filter(entry => entry.date === today);
-
-  // Ищем игрока
-  const playerIndex = leaderboard.findIndex(e => e.username === usernameEl.textContent);
-
-  if (playerIndex === -1) {
-    leaderboard.push({ username: usernameEl.textContent, score, date: today });
-  } else {
-    if (score > leaderboard[playerIndex].score) {
-      leaderboard[playerIndex].score = score;
-    }
-  }
-
-  // Сортируем по убыванию
-  leaderboard.sort((a, b) => b.score - a.score);
-
-  // Ограничим до топ 10
-  if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
-
-  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
 }
 
-function showLeaderboard() {
-  leaderListEl.innerHTML = '';
-  const today = new Date().toISOString().slice(0, 10);
-  const leaderboard = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)) || [];
+function showBonusEffect(gain, multiplier) {
+  const effect = document.createElement('div');
+  effect.className = 'bonus-effect';
+  effect.textContent = multiplier > 1 ? `+${gain} x${multiplier}!` : `+${gain}`;
+  
+  const rect = clickWandBtn.getBoundingClientRect();
+  effect.style.left = `${rect.left + rect.width / 2}px`;
+  effect.style.top = `${rect.top}px`;
 
-  // Фильтруем по сегодняшнему дню
-  const todayLeaderboard = leaderboard.filter(entry => entry.date === today);
+  document.body.appendChild(effect);
 
-  if (todayLeaderboard.length === 0) {
-    leaderListEl.innerHTML = '<li>Пока нет игроков в рейтинге сегодня</li>';
+  effect.animate([
+    { transform: 'translateY(0) scale(1)', opacity: 1 },
+    { transform: 'translateY(-50px) scale(1.5)', opacity: 0 }
+  ], {
+    duration: 1000,
+    easing: 'ease-out'
+  });
+
+  setTimeout(() => effect.remove(), 1000);
+}
+
+function checkLevelUp() {
+  const levelThresholds = [0, 10, 30, 70, 150];
+  if (level < maxLevel && galleons >= levelThresholds[level]) {
+    level++;
+    showAchievement(`Поздравляем! Ты достиг уровня ${level}`);
+  }
+}
+
+function showAchievement(text) {
+  achievementsEl.textContent = text;
+  setTimeout(() => {
+    achievementsEl.textContent = '';
+  }, 3500);
+}
+
+// Автоклик (Люмос)
+function startAutoClick() {
+  if (autclickInterval) return;
+  autclickInterval = setInterval(() => {
+    galleons++;
+    updateDisplay();
+    saveProgress();
+  }, 3000);
+}
+
+function stopAutoClick() {
+  if (autclickInterval) {
+    clearInterval(autclickInterval);
+    autclickInterval = null;
+  }
+}
+
+function getTodayKey() {
+  return `hp_clicker_leaderboard_${new Date().toISOString().slice(0,10)}`;
+}
+
+function loadDailyLeaderboard() {
+  const key = getTodayKey();
+  const dataRaw = localStorage.getItem(key);
+  if (!dataRaw) return {};
+  try {
+    return JSON.parse(dataRaw);
+  } catch {
+    return {};
+  }
+}
+
+function saveDailyLeaderboard() {
+  const key = getTodayKey();
+  const leaderboard = loadDailyLeaderboard();
+  leaderboard[username] = Math.max(leaderboard[username] || 0, galleons);
+  localStorage.setItem(key, JSON.stringify(leaderboard));
+}
+
+function renderLeaderboard() {
+  const leaderboard = loadDailyLeaderboard();
+  const entries = Object.entries(leaderboard);
+  entries.sort((a,b) => b[1] - a[1]);
+
+  if (entries.length === 0) {
+    leaderboardEl.innerHTML = '<p>Рейтинг пуст.</p>';
     return;
   }
 
-  todayLeaderboard.forEach((entry, i) => {
-    const li = document.createElement('li');
-    li.textContent = `${i + 1}. ${entry.username} — ${entry.score} галлеонов`;
-    leaderListEl.appendChild(li);
-  });
+  const html = entries.map(([user, score], idx) => {
+    const highlight = user === username ? ' style="color:#fff; font-weight: 700;"' : '';
+    return `<div${highlight}>${idx + 1}. ${user} — ${score} галлеонов</div>`;
+  }).join('');
+  leaderboardEl.innerHTML = html;
 }
 
-loadLeaderboardBtn.onclick = () => {
-  showLeaderboard();
-};
+clickWandBtn.addEventListener('click', () => {
+  clickWand();
+});
 
+showLeaderboardBtn.addEventListener('click', () => {
+  if (leaderboardEl.classList.contains('hidden')) {
+    renderLeaderboard();
+    leaderboardEl.classList.remove('hidden');
+    showLeaderboardBtn.textContent = 'Скрыть рейтинг';
+  } else {
+    leaderboardEl.classList.add('hidden');
+    showLeaderboardBtn.textContent = 'Показать рейтинг';
+  }
+});
+
+// Инициализация
 loadProgress();
-updateUI();
-updateLeaderboard(galleons);
+
+// Запуск автоклика для примера
+if (level >= 2) startAutoClick();
