@@ -75,12 +75,8 @@ main {
 }
 
 @keyframes floatWand {
-  0%, 100% {
-    transform: translateY(0) rotate(-5deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(5deg);
-  }
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-10px) rotate(5deg); }
 }
 
 #click-wand:active {
@@ -90,6 +86,7 @@ main {
 
 .buttons {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   width: 100%;
   justify-content: center;
@@ -187,10 +184,6 @@ button:disabled {
   transform: scale(1.1);
 }
 
-.hidden {
-  display: none !important;
-}
-
 /* Анимации */
 @keyframes fadeInOut {
   0% { opacity: 0; transform: translateY(10px); }
@@ -250,8 +243,8 @@ button:disabled {
   color: #000;
 }
 
-/* Стили для заклинаний */
-.spell-card {
+/* Стили для магазина и заклинаний */
+.upgrade-item, .spell-item {
   background: rgba(70, 60, 90, 0.7);
   border-radius: 8px;
   padding: 12px;
@@ -259,17 +252,17 @@ button:disabled {
   border-left: 3px solid #7a5;
 }
 
-.spell-card h3 {
+.upgrade-item h3, .spell-item h3 {
   color: #e3c36f;
   margin-bottom: 5px;
 }
 
-.spell-card.active {
+.spell-item.active {
   background: rgba(90, 70, 110, 0.9);
   box-shadow: 0 0 10px #9a6;
 }
 
-.spell-card.cooldown {
+.spell-item.cooldown {
   opacity: 0.6;
   pointer-events: none;
 }
