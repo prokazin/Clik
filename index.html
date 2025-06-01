@@ -17,8 +17,27 @@
 
     <main>
       <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
-      <button id="show-leaderboard">Показать рейтинг</button>
-      <div id="leaderboard" class="hidden"></div>
+      <div class="buttons-row">
+        <button id="show-shop">Магазин</button>
+        <button id="show-leaderboard">Показать рейтинг</button>
+      </div>
+      <!-- Модальное окно магазина -->
+      <div id="shop-modal" class="modal hidden">
+        <div class="modal-content">
+          <button class="close-modal" id="close-shop">&times;</button>
+          <h2>Магазин улучшений</h2>
+          <div id="shop-items"></div>
+        </div>
+      </div>
+
+      <!-- Модальное окно рейтинга -->
+      <div id="leaderboard-modal" class="modal hidden">
+        <div class="modal-content">
+          <button class="close-modal" id="close-leaderboard">&times;</button>
+          <h2>Рейтинг игроков</h2>
+          <div id="leaderboard"></div>
+        </div>
+      </div>
     </main>
 
     <footer>
