@@ -1,44 +1,32 @@
 const galleonsCountEl = document.getElementById('galleons-count');
 const levelCountEl = document.getElementById('level-count');
 const clickWandBtn = document.getElementById('click-wand');
-const leaderboardTab = document.getElementById('leaderboard-tab');
-const shopTab = document.getElementById('shop-tab');
-const achievementsEl = document.getElementById('achievements');
-const usernameEl = document.getElementById('username');
 
-const tabButtons = document.querySelectorAll('.tab-button');
+const tabLeaderboardBtn = document.getElementById('tab-leaderboard');
+const tabShopBtn = document.getElementById('tab-shop');
+const leaderboardEl = document.getElementById('leaderboard');
+const shopEl = document.getElementById('shop');
+const achievementsEl = document.getElementById('achievements');
 
 let galleons = 0;
 let level = 1;
 const maxLevel = 4;
 
-let baseGain = 1;
-let autoClickInterval = null;
+let autclickInterval = null;
 
-const username = window.Telegram?.WebApp?.initDataUnsafe?.user?.username || '';
-if(username) {
-  usernameEl.textContent = `Привет, ${username}!`;
-} else {
-  usernameEl.textContent = ''; // убираем приветствие если нет username
-}
-
-// Улучшения магазина
+// Магазинные улучшения
 const upgrades = {
-  autoClick: {
-    name: 'Люмос (Автоклик)',
-    baseCost: 15,
-    cost: 15,
-    level: 0,
-    maxLevel: 5,
-  },
-  wandUpgrade: {
-    name: 'Улучшение палочки',
-    baseCost: 10,
-    cost: 10,
-    level: 0,
-    maxLevel: 5,
-  }
+  wandPower: { level: 0, maxLevel: 5, basePrice: 10, price: 10, power: 1 },
+  lumos: { level: 0, maxLevel: 5, basePrice: 50, price: 50, autoClickSpeed: 3000 },
+  accio: { level: 0, maxLevel: 5, basePrice: 30, price: 30, bonusChance: 0.15 },
+  avada: { level: 0, maxLevel: 5, basePrice: 100, price: 100, drainAmount: 10 },
 };
+
+const username = window.Telegram?.WebApp?.initDataUnsafe?.user?.username || 'Игрок';
+
+// Убираем приветствие, ничего не ставим в username
+// const usernameEl = document.getElementById('username');
+// usernameEl.textContent = `Привет, ${username}!`;
 
 function loadProgress() {
   const saved = localStorage.getItem('hp_clicker_progress');
@@ -47,11 +35,14 @@ function loadProgress() {
       const data = JSON.parse(saved);
       galleons = data.galleons || 0;
       level = data.level || 1;
-      upgrades.autoClick.level = data.autoClickLevel || 0;
-      upgrades.autoClick.cost = upgrades.autoClick.baseCost * Math.pow(2, upgrades.autoClick.level);
-      upgrades.wandUpgrade.level = data.wandUpgradeLevel || 0;
-      upgrades.wandUpgrade.cost = upgrades.wandUpgrade.baseCost * Math.pow(2, upgrades.wandUpgrade.level);
-      baseGain = 1 + upgrades.wandUpgrade.level; // каждый уровень улучшения палочки +1 к базовому клику
+      if(data.upgrades) {
+        for(const key in upgrades) {
+          if(data.upgrades[key] !== undefined) {
+            upgrades[key].level = data.upgrades[key].level || 0;
+            upgrades[key].price = data.upgrades[key].price || upgrades[key].basePrice * Math.pow(2, upgrades[key].level);
+          }
+        }
+      }
     } catch {
       galleons = 0;
       level = 1;
@@ -62,12 +53,12 @@ function loadProgress() {
 }
 
 function saveProgress() {
-  localStorage.setItem('hp_clicker_progress', JSON.stringify({
+  const data = {
     galleons,
     level,
-    autoClickLevel: upgrades.autoClick.level,
-    wandUpgradeLevel: upgrades.wandUpgrade.level
-  }));
+    upgrades,
+  };
+  localStorage.setItem('hp_clicker_progress', JSON.stringify(data));
   saveDailyLeaderboard();
 }
 
@@ -77,6 +68,7 @@ function updateDisplay() {
 }
 
 function clickWand() {
+  const baseGain = 1 + upgrades.wandPower.level; // Больше уровень - больше галлеонов за клик
   const multiplierChance = Math.random();
 
   let multiplier = 1;
@@ -99,153 +91,153 @@ function showBonusEffect(gain, multiplier) {
   const effect = document.createElement('div');
   effect.className = 'bonus-effect';
   effect.textContent = multiplier > 1 ? `+${gain} x${multiplier}!` : `+${gain}`;
-  
+
   const rect = clickWandBtn.getBoundingClientRect();
   effect.style.left = `${rect.left + rect.width / 2}px`;
   effect.style.top = `${rect.top}px`;
-
   document.body.appendChild(effect);
 
-  effect.animate([
-    { transform: 'translateY(0) scale(1)', opacity: 1 },
-    { transform: 'translateY(-50px) scale(1.5)', opacity: 0 }
-  ], {
-    duration: 1000,
-    easing: 'ease-out'
-  });
-
-  setTimeout(() => effect.remove(), 1000);
+  let posY = rect.top;
+  let opacity = 1;
+  const anim = setInterval(() => {
+    posY -= 2;
+    opacity -= 0.05;
+    effect.style.top = `${posY}px`;
+    effect.style.opacity = opacity;
+    if(opacity <= 0) {
+      clearInterval(anim);
+      effect.remove();
+    }
+  }, 30);
 }
 
 function checkLevelUp() {
-  const levelThreshold = level * 100;
-  if (galleons >= levelThreshold) {
+  const needed = level * 100;
+  if (galleons >= needed) {
     level++;
-    galleons -= levelThreshold;
-    achievementsEl.textContent = `Вы достигли уровня ${level}!`;
-    if (level === 2 && !autoClickInterval) {
-      startAutoClick();
-    }
+    showAchievement(`Ты достиг уровня ${level}!`);
+    updateDisplay();
   }
 }
 
+function showAchievement(text) {
+  achievementsEl.textContent = text;
+  setTimeout(() => {
+    achievementsEl.textContent = '';
+  }, 3000);
+}
+
+// Автоклик по уровню Люмос
 function startAutoClick() {
-  autoClickInterval = setInterval(() => {
-    if (upgrades.autoClick.level > 0) {
-      const autoGain = upgrades.autoClick.level * baseGain;
-      galleons += autoGain;
+  if (autclickInterval) clearInterval(autclickInterval);
+  if (upgrades.lumos.level > 0) {
+    autclickInterval = setInterval(() => {
+      galleons += upgrades.lumos.level; 
       updateDisplay();
       saveProgress();
-    }
-  }, 2000);
+    }, upgrades.lumos.basePrice * (6 - upgrades.lumos.level) * 500); // Чем выше уровень, тем чаще
+  }
 }
 
-function renderShop() {
-  shopTab.innerHTML = '';
-
-  Object.keys(upgrades).forEach(key => {
-    const upgrade = upgrades[key];
-    const canBuy = galleons >= upgrade.cost && upgrade.level < upgrade.maxLevel;
-
-    const item = document.createElement('div');
-    item.className = 'upgrade-item';
-
-    const name = document.createElement('span');
-    name.textContent = `${upgrade.name} (уровень: ${upgrade.level}) — Цена: ${upgrade.cost} галлеонов`;
-    item.appendChild(name);
-
-    const buyBtn = document.createElement('button');
-    buyBtn.textContent = 'Купить';
-    buyBtn.disabled = !canBuy;
-    buyBtn.className = canBuy ? 'can-buy' : 'cannot-buy';
-
-    buyBtn.addEventListener('click', () => {
-      if (galleons >= upgrade.cost && upgrade.level < upgrade.maxLevel) {
-        galleons -= upgrade.cost;
-        upgrade.level++;
-        upgrade.cost = upgrade.baseCost * Math.pow(2, upgrade.level);
-
-        if(key === 'wandUpgrade') {
-          baseGain = 1 + upgrades.wandUpgrade.level;
-        }
-
-        if(key === 'autoClick' && level >= 2 && !autoClickInterval) {
-          startAutoClick();
-        }
-
-        updateDisplay();
-        renderShop();
-        saveProgress();
-      }
-    });
-
-    item.appendChild(buyBtn);
-
-    shopTab.appendChild(item);
-  });
+// Таблица лидеров - пример локального рейтинга (замена на реальный сервер возможна)
+function getLeaderboard() {
+  const leaderboard = JSON.parse(localStorage.getItem('hp_clicker_leaderboard') || '[]');
+  return leaderboard.sort((a, b) => b.galleons - a.galleons).slice(0, 10);
 }
-
-// Вкладки
-
-tabButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    tabButtons.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    if(btn.dataset.tab === 'leaderboard-tab') {
-      leaderboardTab.classList.remove('hidden');
-      shopTab.classList.add('hidden');
-    } else if (btn.dataset.tab === 'shop-tab') {
-      shopTab.classList.remove('hidden');
-      leaderboardTab.classList.add('hidden');
-    }
-  });
-});
-
-// Ежедневный локальный рейтинг (для примера)
-
-let dailyLeaderboard = JSON.parse(localStorage.getItem('hp_clicker_leaderboard')) || [];
 
 function saveDailyLeaderboard() {
-  // Добавляем или обновляем запись
-  const index = dailyLeaderboard.findIndex(u => u.username === username);
+  const leaderboard = JSON.parse(localStorage.getItem('hp_clicker_leaderboard') || '[]');
+  const index = leaderboard.findIndex(u => u.username === username);
   if(index !== -1) {
-    if(dailyLeaderboard[index].galleons < galleons) {
-      dailyLeaderboard[index].galleons = galleons;
-    }
+    if(galleons > leaderboard[index].galleons) leaderboard[index].galleons = galleons;
   } else {
-    if(username) {
-      dailyLeaderboard.push({username, galleons});
-    }
+    leaderboard.push({ username, galleons });
   }
-  // Сортируем по убыванию
-  dailyLeaderboard.sort((a,b) => b.galleons - a.galleons);
-  // Оставляем топ 10
-  dailyLeaderboard = dailyLeaderboard.slice(0, 10);
-  localStorage.setItem('hp_clicker_leaderboard', JSON.stringify(dailyLeaderboard));
+  localStorage.setItem('hp_clicker_leaderboard', JSON.stringify(leaderboard));
   renderLeaderboard();
 }
 
 function renderLeaderboard() {
-  leaderboardTab.innerHTML = '<h3>Топ игроков за сегодня</h3>';
-  if(dailyLeaderboard.length === 0) {
-    leaderboardTab.innerHTML += '<p>Пока нет данных</p>';
+  const leaderboard = getLeaderboard();
+  if(leaderboard.length === 0) {
+    leaderboardEl.innerHTML = '<p>Пока нет игроков</p>';
     return;
   }
-
-  const list = document.createElement('ol');
-  dailyLeaderboard.forEach(player => {
-    const item = document.createElement('li');
-    item.textContent = `${player.username || 'Аноним'} — ${player.galleons} галлеонов`;
-    list.appendChild(item);
-  });
-
-  leaderboardTab.appendChild(list);
+  leaderboardEl.innerHTML = '<table><thead><tr><th>Место</th><th>Игрок</th><th>Галлеоны</th></tr></thead><tbody>' +
+    leaderboard.map((player, i) => {
+      return `<tr${player.username === username ? ' style="font-weight:bold; color:#7a5;"' : ''}>
+        <td>${i+1}</td><td>${player.username}</td><td>${player.galleons}</td>
+      </tr>`;
+    }).join('') +
+    '</tbody></table>';
 }
 
-clickWandBtn.addEventListener('click', clickWand);
+// Магазин
+function renderShop() {
+  shopEl.innerHTML = '';
 
-// Инициализация
+  // Палочка
+  const wandUpg = upgrades.wandPower;
+  const wandBtn = document.createElement('button');
+  wandBtn.textContent = `Улучшить палочку (ур. ${wandUpg.level}/${wandUpg.maxLevel}) - Цена: ${wandUpg.price} галлеонов`;
+  wandBtn.disabled = galleons < wandUpg.price || wandUpg.level >= wandUpg.maxLevel;
+  wandBtn.onclick = () => {
+    if (galleons >= wandUpg.price && wandUpg.level < wandUpg.maxLevel) {
+      galleons -= wandUpg.price;
+      wandUpg.level++;
+      wandUpg.price = Math.floor(wandUpg.basePrice * Math.pow(2, wandUpg.level));
+      showAchievement('Палочка стала сильнее!');
+      updateDisplay();
+      renderShop();
+      saveProgress();
+    }
+  };
+  shopEl.appendChild(wandBtn);
+
+  // Другие улучшения
+  Object.entries(upgrades).forEach(([key, upg]) => {
+    if(key === 'wandPower') return; // уже отрисовали выше
+    const btn = document.createElement('button');
+    btn.textContent = `Улучшить ${key.charAt(0).toUpperCase() + key.slice(1)} (ур. ${upg.level}/${upg.maxLevel}) - Цена: ${upg.price} галлеонов`;
+    btn.disabled = galleons < upg.price || upg.level >= upg.maxLevel;
+    btn.onclick = () => {
+      if(galleons >= upg.price && upg.level < upg.maxLevel) {
+        galleons -= upg.price;
+        upg.level++;
+        upg.price = Math.floor(upg.basePrice * Math.pow(2, upg.level));
+        showAchievement(`${key.charAt(0).toUpperCase() + key.slice(1)} улучшено!`);
+        updateDisplay();
+        renderShop();
+        if(key === 'lumos') startAutoClick();
+        saveProgress();
+      }
+    };
+    shopEl.appendChild(btn);
+  });
+}
+
+function switchTab(tab) {
+  if(tab === 'leaderboard') {
+    leaderboardEl.classList.remove('hidden');
+    shopEl.classList.add('hidden');
+    tabLeaderboardBtn.classList.add('active');
+    tabShopBtn.classList.remove('active');
+  } else {
+    leaderboardEl.classList.add('hidden');
+    shopEl.classList.remove('hidden');
+    tabLeaderboardBtn.classList.remove('active');
+    tabShopBtn.classList.add('active');
+  }
+}
+
+// Обработчики вкладок
+tabLeaderboardBtn.onclick = () => switchTab('leaderboard');
+tabShopBtn.onclick = () => switchTab('shop');
+
+// Обработчик клика по палочке
+clickWandBtn.onclick = clickWand;
 
 loadProgress();
-renderLeaderboard();
+saveDailyLeaderboard();
+startAutoClick();
+switchTab('leaderboard');
