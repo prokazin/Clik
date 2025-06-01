@@ -5,17 +5,21 @@ const elements = {
   clickWand: document.getElementById('click-wand'),
   btnShop: document.getElementById('btn-shop'),
   btnSpells: document.getElementById('btn-spells'),
+  btnSkills: document.getElementById('btn-skills'),
   btnLeaderboard: document.getElementById('btn-leaderboard'),
   btnReset: document.getElementById('btn-reset'),
   shopContent: document.getElementById('shop-content'),
   spellsContent: document.getElementById('spells-content'),
+  skillsContent: document.getElementById('skills-content'),
   leaderboardContent: document.getElementById('leaderboard-content'),
   achievements: document.getElementById('achievements'),
   facultyDisplay: document.getElementById('faculty-display'),
   shopOverlay: document.getElementById('shop-overlay'),
   spellsOverlay: document.getElementById('spells-overlay'),
+  skillsOverlay: document.getElementById('skills-overlay'),
   facultyOverlay: document.getElementById('faculty-overlay'),
-  leaderboardOverlay: document.getElementById('leaderboard-overlay')
+  leaderboardOverlay: document.getElementById('leaderboard-overlay'),
+  wandEffects: document.getElementById('wand-effects')
 };
 
 // Игровые данные
@@ -87,48 +91,32 @@ const gameState = {
         gameState.galleons += 200;
         showAchievement("Золото улетает прямиком в ваш карман!");
       }
+    }
+  },
+  skills: {
+    accuracy: {
+      name: "Точность",
+      description: "Увеличивает шанс критического удара",
+      level: 0,
+      maxLevel: 10,
+      cost: (level) => 100 + level * 50,
+      effect: (level) => 0.02 + level * 0.008
     },
-    avadaKedavra: {
-      name: "Авада Кедавра",
-      description: "Утраивает доход от кликов на 15 секунд",
-      cost: 500,
-      unlocked: false,
-      active: false,
-      duration: 15,
-      cooldown: 300,
-      effect: () => {
-        gameState.spellMultiplier = 3;
-        showAchievement("Смертоносный зеленый свет... но деньги целы!");
-      }
+    speed: {
+      name: "Скорость",
+      description: "Уменьшает время между автокликами",
+      level: 0,
+      maxLevel: 5,
+      cost: (level) => 200 + level * 100,
+      effect: (level) => 1 - level * 0.08
     },
-    expectoPatronum: {
-      name: "Экспекто Патронум",
-      description: "Автокликер работает в 3 раза быстрее 30 секунд",
-      cost: 400,
-      unlocked: false,
-      active: false,
-      duration: 30,
-      cooldown: 240,
-      effect: () => {
-        const originalSpeed = gameState.autoClickInterval._idleTimeout;
-        clearInterval(gameState.autoClickInterval);
-        gameState.autoClickInterval = setInterval(autoClick, originalSpeed / 3);
-        showAchievement("Ваш патронус защищает кошелек!");
-      }
-    },
-    reparo: {
-      name: "Репаро",
-      description: "Сбрасывает все таймеры заклинаний",
-      cost: 250,
-      unlocked: false,
-      active: false,
-      cooldown: 300,
-      effect: () => {
-        Object.values(gameState.spells).forEach(spell => {
-          spell.lastUsed = 0;
-        });
-        showAchievement("Все заклинания восстановлены!");
-      }
+    magicPower: {
+      name: "Сила магии",
+      description: "Увеличивает множитель критического удара",
+      level: 0,
+      maxLevel: 5,
+      cost: (level) => 300 + level * 150,
+      effect: (level) => 1 + level * 0.2
     }
   },
   upgrades: {
@@ -158,6 +146,7 @@ const gameState = {
   autoClickInterval: null,
   autoClickBoost: 1,
   totalClicks: 0,
+  criticalHits: 0,
   spellMultiplier: 1
 };
 
@@ -169,7 +158,15 @@ function initGame() {
   
   if (!gameState.faculty) {
     showModal(elements.facultyOverlay);
+  } else {
+    createFacultyEffect();
   }
+}
+
+function createFacultyEffect() {
+  const effect = document.createElement('div');
+  effect.className = 'faculty-effect';
+  elements.wandEffects.appendChild(effect);
 }
 
 // Загрузка прогресса
@@ -199,6 +196,14 @@ function loadProgress() {
         });
       }
       
+      if (data.skills) {
+        Object.keys(data.skills).forEach(key => {
+          if (gameState.skills[key]) {
+            gameState.skills[key].level = data.skills[key].level || 0;
+          }
+        });
+      }
+      
       if (gameState.level >= 2) {
         startAutoClick(gameState.level >= 3 ? 2000 : 3000);
       }
@@ -217,6 +222,7 @@ function saveProgress() {
     faculty: gameState.faculty,
     upgrades: gameState.upgrades,
     spells: gameState.spells,
+    skills: gameState.skills,
     timestamp: Date.now()
   };
   localStorage.setItem('hp_clicker_progress', JSON.stringify(data));
@@ -233,8 +239,57 @@ function updateDisplay() {
   }
 }
 
+// Создание визуальных эффектов
+function createEffect(type, options = {}) {
+  const effect = document.createElement('div');
+  effect.className = `effect-${type}`;
+  
+  switch(type) {
+    case 'sparkle':
+      effect.className = 'skill-effect';
+      effect.style.width = '20px';
+      effect.style.height = '20px';
+      effect.style.background = 'radial-gradient(circle, gold 30%, transparent 70%)';
+      effect.style.borderRadius = '50%';
+      effect.style.left = `${options.x || 50}px`;
+      effect.style.top = `${options.y || 50}px`;
+      effect.style.animation = 'sparkle 0.8s forwards';
+      break;
+      
+    case 'ripple':
+      effect.className = 'skill-effect';
+      effect.style.width = '100px';
+      effect.style.height = '100px';
+      effect.style.border = '2px solid gold';
+      effect.style.borderRadius = '50%';
+      effect.style.left = `${(options.x || 50) - 50}px`;
+      effect.style.top = `${(options.y || 50) - 50}px`;
+      effect.style.animation = 'ripple 1s forwards';
+      break;
+      
+    case 'critical':
+      effect.className = 'critical-hit';
+      effect.textContent = `CRIT! x${options.multiplier || 2}`;
+      effect.style.left = `${options.x || 50}px`;
+      effect.style.top = `${options.y || 50}px`;
+      break;
+  }
+  
+  elements.wandEffects.appendChild(effect);
+  setTimeout(() => effect.remove(), 1000);
+}
+
 // Обработка клика по палочке
-function handleWandClick() {
+function handleWandClick(e) {
+  const rect = elements.clickWand.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  
+  // Создаем базовые эффекты
+  createEffect('sparkle', {x, y});
+  if (Math.random() > 0.7) createEffect('ripple', {x, y});
+  
+  // Логика клика
   const now = Date.now();
   if (now - gameState.lastClickTime < 100) return;
   
@@ -246,35 +301,38 @@ function handleWandClick() {
     baseGain += upgrade.level * upgrade.effect;
   });
 
-  // Применяем эффект факультета
-  if (gameState.faculty === 'slytherin') {
-    baseGain = gameState.faculties.slytherin.effect(baseGain);
+  // Критический удар
+  const critChance = 0.05 + gameState.skills.accuracy.effect(gameState.skills.accuracy.level);
+  const isCritical = Math.random() < critChance;
+  let multiplier = 1;
+  
+  if (isCritical) {
+    multiplier = 2 + gameState.skills.magicPower.effect(gameState.skills.magicPower.level);
+    gameState.criticalHits++;
+    createEffect('critical', {x: e.clientX, y: e.clientY, multiplier});
   }
 
-  const multiplier = getRandomMultiplier() * gameState.spellMultiplier;
-  const gain = Math.floor(baseGain * multiplier);
-  gameState.galleons += gain;
+  const totalGain = Math.floor(baseGain * multiplier * gameState.spellMultiplier);
+  gameState.galleons += totalGain;
 
-  showBonusEffect(gain, multiplier);
+  showBonusEffect(totalGain, multiplier);
   checkLevelUp();
   updateDisplay();
   saveProgress();
 }
 
-// Случайный множитель с учетом факультета
-function getRandomMultiplier() {
-  let baseChance = 0.05;
+// Показать бонусный эффект
+function showBonusEffect(gain, multiplier) {
+  const effect = document.createElement('div');
+  effect.className = 'bonus-effect';
+  effect.textContent = `+${gain}${multiplier > 1 ? ` (x${multiplier})` : ''}`;
   
-  // Эффект Гриффиндора
-  if (gameState.faculty === 'griffindor') {
-    baseChance = gameState.faculties.griffindor.effect(baseChance);
-  }
-
-  const roll = Math.random();
-  if (roll < baseChance) return 5;
-  if (roll < baseChance * 3) return 3;
-  if (roll < 0.4) return 2;
-  return 1;
+  const rect = elements.clickWand.getBoundingClientRect();
+  effect.style.left = `${rect.left + rect.width / 2}px`;
+  effect.style.top = `${rect.top}px`;
+  
+  document.body.appendChild(effect);
+  setTimeout(() => effect.remove(), 1000);
 }
 
 // Проверка уровня
@@ -287,11 +345,6 @@ function checkLevelUp() {
     if (gameState.level >= 2) gameState.spells.lumos.unlocked = true;
     if (gameState.level >= 3) gameState.spells.wingardium.unlocked = true;
     if (gameState.level >= 4) gameState.spells.expelliarmus.unlocked = true;
-    if (gameState.level >= 5) {
-      gameState.spells.avadaKedavra.unlocked = true;
-      gameState.spells.expectoPatronum.unlocked = true;
-      gameState.spells.reparo.unlocked = true;
-    }
     
     if (gameState.level === 2) {
       startAutoClick(3000);
@@ -308,19 +361,31 @@ function checkLevelUp() {
   }
 }
 
-// Автокликер с учетом факультета
-function startAutoClick(interval) {
+// Автокликер
+function startAutoClick(baseInterval) {
   if (gameState.autoClickInterval) {
     clearInterval(gameState.autoClickInterval);
   }
   
-  // Эффект Пуффендуя
+  // Учитываем навык скорости
+  let interval = baseInterval;
+  if (gameState.skills.speed.level > 0) {
+    interval *= gameState.skills.speed.effect(gameState.skills.speed.level);
+  }
+  
+  // Учитываем факультет
   if (gameState.faculty === 'hufflepuff') {
     interval = gameState.faculties.hufflepuff.effect(interval);
   }
   
   gameState.autoClickInterval = setInterval(() => {
     autoClick();
+    // Эффект автоклика
+    const rect = elements.clickWand.getBoundingClientRect();
+    createEffect('sparkle', {
+      x: rect.left + rect.width/2,
+      y: rect.top + rect.height/2
+    });
   }, interval);
 }
 
@@ -455,14 +520,7 @@ function castSpell(spellKey) {
     setTimeout(() => {
       spell.active = false;
       if (spellKey === 'wingardium') gameState.autoClickBoost = 1;
-      if (spellKey === 'lumos' || spellKey === 'avadaKedavra') {
-        gameState.spellMultiplier = 1;
-      }
-      if (spellKey === 'expectoPatronum') {
-        const originalSpeed = gameState.autoClickInterval._idleTimeout * 3;
-        clearInterval(gameState.autoClickInterval);
-        gameState.autoClickInterval = setInterval(autoClick, originalSpeed);
-      }
+      if (spellKey === 'lumos') gameState.spellMultiplier = 1;
       renderSpells();
     }, spell.duration * 1000);
   }
@@ -470,6 +528,61 @@ function castSpell(spellKey) {
   updateDisplay();
   renderSpells();
   saveProgress();
+}
+
+// Навыки
+function renderSkills() {
+  elements.skillsContent.innerHTML = `
+    <h2>Развитие магических навыков</h2>
+    ${Object.entries(gameState.skills).map(([key, skill]) => `
+      <div class="skill-item">
+        <h3>
+          <span>${skill.name} (Ур. ${skill.level}/${skill.maxLevel})</span>
+          <span>${skill.cost(skill.level)} галлеонов</span>
+        </h3>
+        <div class="skill-progress">
+          <div class="skill-progress-bar" style="width: ${(skill.level / skill.maxLevel) * 100}%"></div>
+        </div>
+        <p>${skill.description}</p>
+        <p>Текущий эффект: +${Math.round(skill.effect(skill.level) * 100)}%</p>
+        <button 
+          id="buy-skill-${key}" 
+          ${gameState.galleons < skill.cost(skill.level) || skill.level >= skill.maxLevel ? 'disabled' : ''}
+        >
+          Изучить
+        </button>
+      </div>
+    `).join('')}
+  `;
+
+  Object.keys(gameState.skills).forEach(key => {
+    const btn = document.getElementById(`buy-skill-${key}`);
+    if (btn) {
+      btn.addEventListener('click', () => buySkill(key));
+    }
+  });
+}
+
+function buySkill(skillKey) {
+  const skill = gameState.skills[skillKey];
+  const cost = skill.cost(skill.level);
+  
+  if (skill.level < skill.maxLevel && gameState.galleons >= cost) {
+    gameState.galleons -= cost;
+    skill.level++;
+    
+    // Перезапускаем автокликер если прокачали скорость
+    if (skillKey === 'speed' && gameState.autoClickInterval) {
+      const baseInterval = gameState.level >= 3 ? 2000 : 3000;
+      const speedFactor = skill.effect(skill.level);
+      startAutoClick(baseInterval * speedFactor);
+    }
+    
+    updateDisplay();
+    renderSkills();
+    saveProgress();
+    showAchievement(`Навык "${skill.name}" улучшен до уровня ${skill.level}!`);
+  }
 }
 
 // Таблица лидеров
@@ -529,20 +642,6 @@ function showAchievement(text) {
   }, 3500);
 }
 
-// Эффект бонуса
-function showBonusEffect(gain, multiplier) {
-  const effect = document.createElement('div');
-  effect.className = 'bonus-effect';
-  effect.textContent = `+${gain}${multiplier > 1 ? ` (x${multiplier})` : ''}`;
-  
-  const rect = elements.clickWand.getBoundingClientRect();
-  effect.style.left = `${rect.left + rect.width / 2}px`;
-  effect.style.top = `${rect.top}px`;
-  
-  document.body.appendChild(effect);
-  setTimeout(() => effect.remove(), 1000);
-}
-
 // Сброс прогресса
 function resetProgress() {
   if (confirm("Вы точно хотите сбросить весь прогресс?")) {
@@ -555,6 +654,9 @@ function resetProgress() {
     Object.keys(gameState.spells).forEach(key => {
       gameState.spells[key].unlocked = false;
       gameState.spells[key].active = false;
+    });
+    Object.keys(gameState.skills).forEach(key => {
+      gameState.skills[key].level = 0;
     });
     
     if (gameState.autoClickInterval) {
@@ -593,6 +695,11 @@ function setupEventListeners() {
     showModal(elements.spellsOverlay);
   });
   
+  elements.btnSkills.addEventListener('click', () => {
+    renderSkills();
+    showModal(elements.skillsOverlay);
+  });
+  
   elements.btnLeaderboard.addEventListener('click', () => {
     renderLeaderboard();
     showModal(elements.leaderboardOverlay);
@@ -615,6 +722,7 @@ function setupEventListeners() {
       updateDisplay();
       showAchievement(`Добро пожаловать в ${gameState.faculties[gameState.faculty].name}!`);
       saveProgress();
+      createFacultyEffect();
       
       // Перезапускаем автокликер с новыми параметрами
       if (gameState.level >= 2) {
