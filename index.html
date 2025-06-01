@@ -17,15 +17,13 @@
     <main>
       <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
       
-      <div id="store">
-        <h2>Магазин улучшений</h2>
-        <div id="store-items"></div>
+      <div class="tabs">
+        <button id="btn-shop" class="tab-button">Магазин</button>
+        <button id="btn-leaderboard" class="tab-button">Рейтинг игроков</button>
       </div>
-
-      <div id="leaderboard">
-        <h2>Рейтинг игроков</h2>
-        <div id="leaderboard-list"></div>
-      </div>
+      
+      <div id="shop" class="tab-content hidden"></div>
+      <div id="leaderboard" class="tab-content hidden"></div>
     </main>
 
     <footer>
