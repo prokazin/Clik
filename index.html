@@ -10,6 +10,7 @@
   <div class="container">
     <header>
       <h1>Хогвартс</h1>
+      <div id="faculty-display"></div>
       <div id="galleons">Галлеоны: <span id="galleons-count">0</span></div>
       <div id="level">Уровень: <span id="level-count">1</span></div>
     </header>
@@ -20,6 +21,7 @@
       </div>
       <div class="buttons">
         <button id="btn-shop">Магазин</button>
+        <button id="btn-spells">Заклинания</button>
         <button id="btn-leaderboard">Рейтинг</button>
       </div>
     </main>
@@ -28,10 +30,42 @@
       <div id="achievements"></div>
     </footer>
 
+    <!-- Модальные окна -->
     <div id="shop-overlay" class="overlay">
       <div class="modal">
         <button class="close-btn">×</button>
         <div id="shop"></div>
+      </div>
+    </div>
+
+    <div id="spells-overlay" class="overlay">
+      <div class="modal">
+        <button class="close-btn">×</button>
+        <div id="spells"></div>
+      </div>
+    </div>
+
+    <div id="faculty-overlay" class="overlay">
+      <div class="modal">
+        <h2>Выберите факультет</h2>
+        <div class="faculty-choices">
+          <div class="faculty-choice" data-faculty="griffindor">
+            <h3>Гриффиндор</h3>
+            <p>+30% шанс критического удара</p>
+          </div>
+          <div class="faculty-choice" data-faculty="slytherin">
+            <h3>Слизерин</h3>
+            <p>+20% доход от улучшений</p>
+          </div>
+          <div class="faculty-choice" data-faculty="ravenclaw">
+            <h3>Когтевран</h3>
+            <p>-15% стоимость улучшений</p>
+          </div>
+          <div class="faculty-choice" data-faculty="hufflepuff">
+            <h3>Пуффендуй</h3>
+            <p>+25% эффективность автокликера</p>
+          </div>
+        </div>
       </div>
     </div>
 
