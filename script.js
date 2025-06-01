@@ -319,6 +319,190 @@ function saveDailyLeaderboard() {
   localStorage.setItem('hp_clicker_leaderboard', JSON.stringify(leaderboard));
 }
 
+// =============== ОБНОВЛЁННЫЙ МАГАЗИН ===============
+
+const upgrades = {
+  wand: {
+    name: "Волшебная палочка",
+    level: 0,
+    maxLevel: 10,
+    basePrice: 15,
+    effect: 1,
+    description: "Увеличивает базовый доход за клик"
+  },
+  spellbook: {
+    name: "Учебник заклинаний",
+    level: 0,
+    maxLevel: 5,
+    basePrice: 75,
+    effect: 3,
+    description: "Даёт бонус к каждому клику"
+  },
+  owl: {
+    name: "Почтовая сова",
+    level: 0,
+    maxLevel: 3,
+    basePrice: 200,
+    effect: 10,
+    description: "Приносит дополнительный доход"
+  },
+  potion: {
+    name: "Зелье удачи",
+    level: 0,
+    maxLevel: 5,
+    basePrice: 120,
+    effect: 0.05,
+    description: "Увеличивает шанс критического удара"
+  }
+};
+
+function renderShop() {
+  shopEl.innerHTML = `
+    <h2>🏪 Магические улучшения</h2>
+    <div class="shop-items">
+      ${Object.entries(upgrades).map(([key, item]) => `
+        <div class="upgrade-card">
+          <h3>${item.name} ${item.level > 0 ? `(Ур. ${item.level})` : ''}</h3>
+          <p>${item.description}</p>
+          <div class="upgrade-progress">
+            <div class="upgrade-progress-bar" style="width: ${(item.level / item.maxLevel) * 100}%"></div>
+          </div>
+          <p>Эффект: +${item.level * item.effect} ${key === 'potion' ? 'к шансу крита' : 'за клик'}</p>
+          <button 
+            id="btn-upgrade-${key}" 
+            ${galleons < getUpgradePrice(key) || item.level >= item.maxLevel ? 'disabled' : ''}
+          >
+            ${item.level >= item.maxLevel ? 'Макс. уровень' : 
+             `Улучшить (${getUpgradePrice(key)} галлеонов)`}
+          </button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  Object.keys(upgrades).forEach(key => {
+    const btn = document.getElementById(`btn-upgrade-${key}`);
+    if (btn) btn.onclick = () => upgradeItem(key);
+  });
+}
+
+function getUpgradePrice(itemKey) {
+  const item = upgrades[itemKey];
+  return Math.floor(item.basePrice * Math.pow(1.8, item.level));
+}
+
+function upgradeItem(itemKey) {
+  const item = upgrades[itemKey];
+  const price = getUpgradePrice(itemKey);
+  
+  if (galleons >= price && item.level < item.maxLevel) {
+    galleons -= price;
+    item.level++;
+    
+    // Специальные эффекты при достижении уровней
+    if (itemKey === 'wand' && item.level === 3) {
+      showAchievement("Палочка излучает магическую энергию!");
+    }
+    
+    updateDisplay();
+    renderShop();
+    saveProgress();
+    showAchievement(`${item.name} улучшена до уровня ${item.level}!`);
+  }
+}
+
+// =============== ОБНОВЛЁННЫЙ РЕЙТИНГ ===============
+
+function renderLeaderboard() {
+  const dailyLeaderboard = loadDailyLeaderboard();
+  
+  leaderboardEl.innerHTML = `
+    <h2>🏆 Топ волшебников</h2>
+    <div class="leaderboard-header">
+      <span>Игрок</span>
+      <span>Галлеоны</span>
+    </div>
+    ${dailyLeaderboard.map((player, index) => `
+      <div class="leaderboard-entry">
+        <div class="leaderboard-position">${index + 1}</div>
+        <div class="leaderboard-player">
+          <span class="leaderboard-name">${player.name || 'Анонимный маг'}</span>
+          <span class="leaderboard-score">${player.score}</span>
+        </div>
+      </div>
+    `).join('')}
+    
+    ${dailyLeaderboard.length === 0 ? 
+      '<div class="leaderboard-entry">Пока никто не играл</div>' : ''}
+    
+    <div class="leaderboard-entry" style="margin-top: 15px; background: rgba(122, 165, 85, 0.2);">
+      <div class="leaderboard-position">#</div>
+      <div class="leaderboard-player">
+        <span class="leaderboard-name">Ваш результат</span>
+        <span class="leaderboard-score">${galleons}</span>
+      </div>
+    </div>
+  `;
+}
+
+// =============== ОБНОВЛЁННАЯ ЛОГИКА КЛИКОВ ===============
+
+function clickWand() {
+  const now = Date.now();
+  if (now - lastClickTime < 100) {
+    galleons = Math.max(0, Math.floor(galleons * 0.8));
+    showAchievement("Магия не терпит обмана! -20%");
+    updateDisplay();
+    return;
+  }
+  lastClickTime = now;
+
+  // Базовый доход с учётом улучшений
+  let baseGain = 1 + upgrades.wand.level * upgrades.wand.effect 
+                + upgrades.spellbook.level * upgrades.spellbook.effect;
+
+  // Случайный множитель с учётом зелья удачи
+  const critChance = 0.05 + upgrades.potion.level * upgrades.potion.effect;
+  let multiplier = 1;
+  
+  const roll = Math.random();
+  if (roll < critChance * 0.3) multiplier = 10;
+  else if (roll < critChance * 0.7) multiplier = 5;
+  else if (roll < critChance) multiplier = 3;
+  else if (roll < 0.5 + critChance * 0.5) multiplier = 2;
+
+  const gain = Math.floor(baseGain * multiplier);
+  galleons += gain;
+
+  // Эффекты
+  if (multiplier >= 5) {
+    showCriticalEffect(multiplier);
+  }
+  showBonusEffect(gain, multiplier);
+
+  checkLevelUp();
+  updateDisplay();
+  saveProgress();
+}
+
+function showCriticalEffect(multiplier) {
+  const crit = document.createElement('div');
+  crit.className = 'critical-effect';
+  crit.innerHTML = `
+    <div style="font-size: 2em; color: gold;">CRITICAL x${multiplier}!</div>
+    <div style="position: absolute; width: 100%; height: 100%; 
+         background: radial-gradient(circle, rgba(255,215,0,0.3) 0%, rgba(255,215,0,0) 70%);
+         pointer-events: none;"></div>
+  `;
+  
+  document.body.appendChild(crit);
+  
+  setTimeout(() => {
+    crit.style.opacity = '0';
+    setTimeout(() => crit.remove(), 1000);
+  }, 500);
+}
+
 // =============== ДОСТИЖЕНИЯ ===============
 
 function showAchievement(text) {
