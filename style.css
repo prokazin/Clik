@@ -1,142 +1,139 @@
+/* Добавляем в начало, если нет */
 * {
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent; /* Убирает серую подсветку на iOS/Android */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  max-width: 600px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto;
-  gap: 20px;
-
-  background: url('assets/background.jpg') no-repeat center center fixed;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: url('assets/hogwarts-bg.jpg') no-repeat center center fixed;
   background-size: cover;
-
   color: #fff;
-  text-shadow: 0 0 5px #000;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
 }
 
-h1, h2 {
-  grid-column: 1 / -1;
+.container {
+  background: rgba(0,0,0,0.65);
+  border-radius: 15px;
+  padding: 20px 40px;
+  width: 320px;
   text-align: center;
-  margin: 0;
-  padding: 10px 0;
+  box-shadow: 0 0 20px #7a5;
 }
 
-#user-name {
-  grid-column: 1 / -1;
-  text-align: center;
-  font-weight: bold;
+header h1 {
+  margin-bottom: 10px;
+  font-size: 1.8em;
+  color: #e3c36f;
+  text-shadow: 1px 1px 3px #000;
+}
+
+#username {
+  font-size: 1em;
+  margin-bottom: 5px;
+  color: #bfc9b8;
+}
+
+#galleons, #level {
   font-size: 1.2em;
+  margin: 5px 0 15px;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px #000;
 }
 
-#galleons {
-  grid-column: 1 / -1;
-  font-size: 1.5em;
-  text-align: center;
-  padding: 10px 0;
+main {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 15px;
+  justify-items: center;
 }
 
 #click-wand {
-  grid-column: 1 / -1;
   width: 150px;
-  height: auto;
   cursor: pointer;
-  justify-self: center;
+  outline: none;
   user-select: none;
+  pointer-events: auto;
   transition: transform 0.2s ease;
-  outline: none;
-}
-
-#click-wand:focus {
-  outline: none;
 }
 
 #click-wand:active {
   transform: scale(0.9) rotate(-10deg);
 }
 
-#crit-effect {
-  grid-column: 1 / -1;
-  font-weight: bold;
-  font-size: 2em;
-  color: #ef4444;
-  opacity: 0;
-  transition: opacity 0.5s;
-  height: 40px;
-  text-align: center;
-}
-
-button {
-  font-size: 1em;
-  padding: 10px;
-  cursor: pointer;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  background: white;
-  transition: background-color 0.3s ease;
-  color: black;
-}
-
-button:hover {
-  background-color: #ddd;
-}
-
-#buy-lumos {
-  grid-column: 1 / 2;
-  background-color: #10b981;
-  color: white;
+button#show-leaderboard {
+  padding: 10px 25px;
+  font-size: 1.1em;
   border: none;
-}
-
-#buy-lumos:hover {
-  background-color: #059669;
-}
-
-#activate-accio {
-  grid-column: 2 / 3;
-  background-color: #f97316;
-  color: white;
-  border: none;
-}
-
-#activate-accio:hover {
-  background-color: #ea580c;
-}
-
-#achievement-list, #leader-list {
-  grid-column: 1 / -1;
-  max-height: 150px;
-  overflow-y: auto;
-  background: rgba(255, 255, 255, 0.85);
   border-radius: 8px;
+  background-color: #7a5;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 10px #496834;
+  transition: background-color 0.3s ease;
+}
+
+button#show-leaderboard:hover {
+  background-color: #96b864;
+}
+
+#leaderboard {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
   padding: 10px;
-  list-style: none;
-  margin: 0;
-  color: black;
+  width: 100%;
+  max-height: 200px;
+  overflow-y: auto;
+  color: #d4e09b;
+  font-weight: 600;
+  font-size: 1em;
+  text-align: left;
 }
 
-#btn-load-leaderboard {
-  grid-column: 1 / -1;
-  background-color: #2563eb;
-  color: white;
-  border: none;
+.hidden {
+  display: none;
 }
 
-#btn-load-leaderboard:hover {
-  background-color: #1d4ed8;
+footer {
+  margin-top: 20px;
 }
 
-@media (max-width: 480px) {
-  body {
-    grid-template-columns: 1fr;
+#achievements {
+  font-size: 1em;
+  color: #cfd9a6;
+  min-height: 20px;
+}
+
+/* Адаптив */
+@media(max-width: 400px) {
+  .container {
+    width: 90vw;
+    padding: 15px 20px;
   }
-
-  #buy-lumos, #activate-accio, #btn-load-leaderboard {
-    grid-column: 1 / -1;
+  #click-wand {
+    width: 120px;
   }
+  button#show-leaderboard {
+    font-size: 1em;
+    padding: 8px 20px;
+  }
+}
+
+/* Эффект бонуса */
+.bonus-effect {
+  position: fixed;
+  font-weight: bold;
+  color: #ffea00;
+  text-shadow: 0 0 5px #fff;
+  pointer-events: none;
+  user-select: none;
+  z-index: 9999;
 }
