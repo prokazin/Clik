@@ -157,3 +157,82 @@ footer {
     padding: 8px 20px;
   }
 }
+
+/* Новые стили для магазина и рейтинга */
+.upgrade-card {
+  background: linear-gradient(135deg, rgba(46, 49, 49, 0.8) 0%, rgba(26, 29, 29, 0.9) 100%);
+  border-radius: 10px;
+  padding: 15px;
+  margin: 10px 0;
+  border-left: 4px solid #7a5;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.upgrade-card:hover {
+  transform: translateY(-3px);
+}
+
+.upgrade-card h3 {
+  color: #e3c36f;
+  margin-bottom: 8px;
+  font-size: 1.1em;
+}
+
+.upgrade-progress {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  margin: 8px 0;
+  overflow: hidden;
+}
+
+.upgrade-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7a5 0%, #96b864 100%);
+  border-radius: 3px;
+}
+
+.leaderboard-entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  margin: 5px 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  align-items: center;
+}
+
+.leaderboard-position {
+  width: 24px;
+  height: 24px;
+  background: #7a5;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.leaderboard-player {
+  flex-grow: 1;
+  display: flex;
+  justify-content: space-between;
+}
+
+.leaderboard-name {
+  color: #e3c36f;
+}
+
+.leaderboard-score {
+  font-weight: bold;
+  color: #96b864;
+}
+
+.leaderboard-header {
+  font-weight: bold;
+  border-bottom: 1px solid #7a5;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
