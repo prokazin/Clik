@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Хогвартс Кликер</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
@@ -17,12 +17,13 @@
 
     <main>
       <div class="wand-container">
-        <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
+        <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка">
       </div>
       <div class="buttons">
         <button id="btn-shop">Магазин</button>
         <button id="btn-spells">Заклинания</button>
         <button id="btn-leaderboard">Рейтинг</button>
+        <button id="btn-reset">Сбросить</button>
       </div>
     </main>
 
@@ -31,7 +32,7 @@
     </footer>
 
     <!-- Модальные окна -->
-    <div id="shop-overlay" class="overlay hidden">
+    <div id="shop-overlay" class="overlay">
       <div class="modal">
         <button class="close-btn">×</button>
         <h2>Магазин</h2>
@@ -39,7 +40,7 @@
       </div>
     </div>
 
-    <div id="spells-overlay" class="overlay hidden">
+    <div id="spells-overlay" class="overlay">
       <div class="modal">
         <button class="close-btn">×</button>
         <h2>Заклинания</h2>
@@ -47,7 +48,7 @@
       </div>
     </div>
 
-    <div id="leaderboard-overlay" class="overlay hidden">
+    <div id="leaderboard-overlay" class="overlay">
       <div class="modal">
         <button class="close-btn">×</button>
         <h2>Рейтинг</h2>
@@ -55,7 +56,7 @@
       </div>
     </div>
 
-    <div id="faculty-overlay" class="overlay hidden">
+    <div id="faculty-overlay" class="overlay">
       <div class="modal">
         <h2>Выберите факультет</h2>
         <div class="faculty-choices">
