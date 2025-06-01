@@ -1,4 +1,4 @@
-/* Твой оригинальный фон и стили */
+/* Твой фон и стили */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: url('assets/background.jpg') no-repeat center center fixed;
@@ -9,16 +9,15 @@ body {
   user-select: none;
 }
 
-/* Контейнер */
 .container {
   max-width: 600px;
   margin: auto;
   text-align: center;
 }
 
-/* Заголовок */
 header h1 {
   margin-bottom: 10px;
+  font-size: 1.8em;
 }
 
 /* Палочка */
@@ -35,7 +34,6 @@ header h1 {
   transform: scale(0.95);
 }
 
-/* Блок с достижениями */
 #achievements {
   margin-top: 20px;
   font-weight: 700;
