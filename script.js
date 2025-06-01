@@ -19,31 +19,31 @@ let achievements = [];
 
 usernameEl.textContent = tg.initDataUnsafe?.user?.username || 'Игрок';
 
+// Ключ для сохранения прогресса в Telegram WebApp Storage
+const STORAGE_KEY = 'hp_clicker_progress';
+// Ключ для рейтинга (простой дневной рейтинг в localStorage)
+const LEADERBOARD_KEY = 'hp_clicker_leaderboard';
+
 function loadProgress() {
-  const data = tg.getData('hp_clicker_progress');
-  if (data) {
+  const dataStr = localStorage.getItem(STORAGE_KEY);
+  if (dataStr) {
     try {
-      const parsed = JSON.parse(data);
-      galleons = parsed.galleons || 0;
-      level = parsed.level || 1;
-      lumosBought = parsed.lumosBought || false;
-      accioActive = parsed.accioActive || false;
-      achievements = parsed.achievements || [];
+      const data = JSON.parse(dataStr);
+      galleons = data.galleons || 0;
+      level = data.level || 1;
+      lumosBought = data.lumosBought || false;
+      accioActive = data.accioActive || false;
+      achievements = data.achievements || [];
     } catch {}
   }
 }
 
 function saveProgress() {
-  const data = {
-    galleons,
-    level,
-    lumosBought,
-    accioActive,
-    achievements
-  };
-  tg.setData('hp_clicker_progress', JSON.stringify(data));
+  const data = { galleons, level, lumosBought, accioActive, achievements };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
+// Обновляем UI
 function updateUI() {
   galleonCountEl.textContent = galleons;
   buyLumosBtn.disabled = lumosBought || galleons < 50;
@@ -61,6 +61,7 @@ function updateUI() {
   }
 }
 
+// Получить случайный множитель x1-x5
 function getCritMultiplier() {
   const rand = Math.random();
   if (rand < 0.1) return 5;
@@ -79,6 +80,7 @@ function showCritEffect(multiplier) {
   }, 1000);
 }
 
+// Клик по палочке
 clickWandBtn.onclick = () => {
   let multiplier = getCritMultiplier();
   let gain = 1 * multiplier;
@@ -91,11 +93,14 @@ clickWandBtn.onclick = () => {
     achievements.push('Собрал 100 галлеонов');
   }
 
+  updateLeaderboard(galleons);
+
   showCritEffect(multiplier);
   updateUI();
   saveProgress();
 };
 
+// Автоклик от Люмос
 let lumosInterval = null;
 
 buyLumosBtn.onclick = () => {
@@ -104,6 +109,7 @@ buyLumosBtn.onclick = () => {
   lumosBought = true;
   lumosInterval = setInterval(() => {
     galleons += 1;
+    updateLeaderboard(galleons);
     updateUI();
     saveProgress();
   }, 1000);
@@ -111,6 +117,7 @@ buyLumosBtn.onclick = () => {
   saveProgress();
 };
 
+// Активировать бонус Акцио
 activateAccioBtn.onclick = () => {
   if (galleons < 100 || accioActive) return;
   galleons -= 100;
@@ -122,13 +129,65 @@ activateAccioBtn.onclick = () => {
     accioActive = false;
     updateUI();
     saveProgress();
-  }, 15000); // 15 секунд бонуса
+  }, 15000);
 };
 
+// Рейтинг игроков в localStorage (по username и галлеонам)
+function updateLeaderboard(score) {
+  if (!usernameEl.textContent) return;
+
+  let leaderboard = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)) || [];
+
+  // Сегодняшняя дата
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Фильтруем по сегодняшнему дню
+  leaderboard = leaderboard.filter(entry => entry.date === today);
+
+  // Ищем игрока
+  const playerIndex = leaderboard.findIndex(e => e.username === usernameEl.textContent);
+
+  if (playerIndex === -1) {
+    leaderboard.push({ username: usernameEl.textContent, score, date: today });
+  } else {
+    if (score > leaderboard[playerIndex].score) {
+      leaderboard[playerIndex].score = score;
+    }
+  }
+
+  // Сортируем по убыванию
+  leaderboard.sort((a, b) => b.score - a.score);
+
+  // Ограничим до топ 10
+  if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
+
+  localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(leaderboard));
+}
+
+function showLeaderboard() {
+  leaderListEl.innerHTML = '';
+  const today = new Date().toISOString().slice(0, 10);
+  const leaderboard = JSON.parse(localStorage.getItem(LEADERBOARD_KEY)) || [];
+
+  // Фильтруем по сегодняшнему дню
+  const todayLeaderboard = leaderboard.filter(entry => entry.date === today);
+
+  if (todayLeaderboard.length === 0) {
+    leaderListEl.innerHTML = '<li>Пока нет игроков в рейтинге сегодня</li>';
+    return;
+  }
+
+  todayLeaderboard.forEach((entry, i) => {
+    const li = document.createElement('li');
+    li.textContent = `${i + 1}. ${entry.username} — ${entry.score} галлеонов`;
+    leaderListEl.appendChild(li);
+  });
+}
+
 loadLeaderboardBtn.onclick = () => {
-  alert('Рейтинг пока не реализован без Firebase.');
-  // Здесь можно будет подключить Telegram API или сервер для рейтинга
+  showLeaderboard();
 };
 
 loadProgress();
 updateUI();
+updateLeaderboard(galleons);
