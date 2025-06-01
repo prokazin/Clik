@@ -210,7 +210,6 @@ button:active {
     transform: translateY(-50px);
     opacity: 0;
   }
-}
 
 /* Адаптивность */
 @media (max-width: 400px) {
@@ -227,4 +226,8 @@ button:active {
     padding: 8px 15px;
     font-size: 0.9em;
   }
+
+/* Добавьте это в конец файла */
+.hidden {
+  display: none !important;
 }
