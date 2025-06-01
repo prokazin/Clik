@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-  <title>Хогвартс</title>
+  <title>Хогвартс Кликер</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Хогвартс</h1>
+      <h1>Хогвартс Кликер</h1>
       <div id="faculty-display"></div>
       <div id="galleons">Галлеоны: <span id="galleons-count">0</span></div>
       <div id="level">Уровень: <span id="level-count">1</span></div>
@@ -34,14 +34,24 @@
     <div id="shop-overlay" class="overlay hidden">
       <div class="modal">
         <button class="close-btn">×</button>
-        <div id="shop"></div>
+        <h2>Магазин</h2>
+        <div id="shop-content"></div>
       </div>
     </div>
 
     <div id="spells-overlay" class="overlay hidden">
       <div class="modal">
         <button class="close-btn">×</button>
-        <div id="spells"></div>
+        <h2>Заклинания</h2>
+        <div id="spells-content"></div>
+      </div>
+    </div>
+
+    <div id="leaderboard-overlay" class="overlay hidden">
+      <div class="modal">
+        <button class="close-btn">×</button>
+        <h2>Рейтинг</h2>
+        <div id="leaderboard-content"></div>
       </div>
     </div>
 
@@ -49,30 +59,23 @@
       <div class="modal">
         <h2>Выберите факультет</h2>
         <div class="faculty-choices">
-          <div class="faculty-choice" data-faculty="griffindor">
+          <div class="faculty-choice griffindor" data-faculty="griffindor">
             <h3>Гриффиндор</h3>
             <p>+30% шанс критического удара</p>
           </div>
-          <div class="faculty-choice" data-faculty="slytherin">
+          <div class="faculty-choice slytherin" data-faculty="slytherin">
             <h3>Слизерин</h3>
             <p>+20% доход от улучшений</p>
           </div>
-          <div class="faculty-choice" data-faculty="ravenclaw">
+          <div class="faculty-choice ravenclaw" data-faculty="ravenclaw">
             <h3>Когтевран</h3>
             <p>-15% стоимость улучшений</p>
           </div>
-          <div class="faculty-choice" data-faculty="hufflepuff">
+          <div class="faculty-choice hufflepuff" data-faculty="hufflepuff">
             <h3>Пуффендуй</h3>
             <p>+25% эффективность автокликера</p>
           </div>
         </div>
-      </div>
-    </div>
-
-    <div id="leaderboard-overlay" class="overlay hidden">
-      <div class="modal">
-        <button class="close-btn">×</button>
-        <div id="leaderboard"></div>
       </div>
     </div>
   </div>
