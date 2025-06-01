@@ -36,12 +36,6 @@ header h1 {
   text-shadow: 1px 1px 3px #000;
 }
 
-#username {
-  font-size: 1em;
-  margin-bottom: 5px;
-  color: #bfc9b8;
-}
-
 #galleons, #level {
   font-size: 1.2em;
   margin: 5px 0 15px;
@@ -55,14 +49,35 @@ main {
   gap: 15px;
 }
 
-#click-wand {
+.wand-container {
+  position: relative;
   width: 150px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#click-wand {
+  width: 100px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
+  animation: floatWand 3s ease-in-out infinite;
+  transform-origin: center bottom;
+}
+
+@keyframes floatWand {
+  0%, 100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
 }
 
 #click-wand:active {
-  transform: scale(0.9) rotate(-10deg);
+  animation: none;
+  transform: scale(0.9) rotate(-15deg) !important;
 }
 
 .buttons {
@@ -100,7 +115,6 @@ button:active {
   animation: fadeInOut 3.5s forwards;
 }
 
-/* Модальные окна */
 .overlay {
   position: fixed;
   top: 0;
@@ -155,7 +169,6 @@ button:active {
   transform: scale(1.1);
 }
 
-/* Анимации */
 @keyframes fadeInOut {
   0% { opacity: 0; transform: translateY(10px); }
   10% { opacity: 1; transform: translateY(0); }
@@ -179,7 +192,6 @@ button:active {
   }
 }
 
-/* Адаптивность */
 @media (max-width: 400px) {
   .container {
     width: 95vw;
@@ -187,7 +199,7 @@ button:active {
   }
   
   #click-wand {
-    width: 120px;
+    width: 80px;
   }
   
   button {
