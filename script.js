@@ -19,14 +19,61 @@ const elements = {
 
 // Игровые данные
 const gameState = {
-  galleons: 0,
+  galleons: 100,
   level: 1,
+  maxLevel: 10,
   faculty: null,
   upgrades: {
-    wand: { level: 0, basePrice: 15, effect: 1, name: "Волшебная палочка" },
-    spellbook: { level: 0, basePrice: 75, effect: 3, name: "Учебник заклинаний" },
-    owl: { level: 0, basePrice: 200, effect: 10, name: "Почтовая сова" }
-  }
+    wand: { 
+      level: 0, 
+      basePrice: 15, 
+      effect: 1, 
+      name: "Волшебная палочка", 
+      description: "+1 галлеон за уровень" 
+    },
+    spellbook: { 
+      level: 0, 
+      basePrice: 75, 
+      effect: 3, 
+      name: "Учебник заклинаний", 
+      description: "+3 галлеона за уровень" 
+    },
+    owl: { 
+      level: 0, 
+      basePrice: 200, 
+      effect: 10, 
+      name: "Почтовая сова", 
+      description: "+10 галлеонов за уровень" 
+    }
+  },
+  spells: {
+    lumos: {
+      name: "Люмос",
+      description: "+50% к доходу на 10 кликов",
+      cost: 100,
+      unlocked: false,
+      active: false,
+      effect: () => {
+        gameState.spellMultiplier = 1.5;
+        showAchievement("Активировано: Люмос!");
+      }
+    },
+    wingardium: {
+      name: "Вингардиум Левиоса",
+      description: "Дает 50 галлеонов сразу",
+      cost: 150,
+      unlocked: false,
+      active: false,
+      effect: () => {
+        gameState.galleons += 50;
+        updateDisplay();
+        showAchievement("+50 галлеонов!");
+      }
+    }
+  },
+  spellMultiplier: 1,
+  totalClicks: 0,
+  autoClicker: null
 };
 
 // Инициализация игры
@@ -34,9 +81,23 @@ function initGame() {
   setupEventListeners();
   updateDisplay();
   
+  // Показываем выбор факультета если не выбран
   if (!gameState.faculty) {
-    elements.facultyOverlay.classList.remove('hidden');
+    showModal(elements.facultyOverlay);
   }
+  
+  // Разблокируем заклинания при достижении уровня
+  checkSpellsUnlock();
+}
+
+// Показ модального окна
+function showModal(modalElement) {
+  modalElement.classList.remove('hidden');
+}
+
+// Скрытие модального окна
+function hideModal(modalElement) {
+  modalElement.classList.add('hidden');
 }
 
 // Обновление интерфейса
@@ -49,60 +110,74 @@ function updateDisplay() {
   }
 }
 
-// Обработчики событий
-function setupEventListeners() {
-  // Клик по палочке
-  elements.clickWand.addEventListener('click', () => {
-    gameState.galleons += 1 + getUpgradeBonus();
-    updateDisplay();
+// Обработка клика по палочке
+function handleWandClick() {
+  let baseGain = 1;
+  
+  // Добавляем бонус от улучшений
+  Object.values(gameState.upgrades).forEach(upgrade => {
+    baseGain += upgrade.level * upgrade.effect;
   });
-
-  // Кнопки интерфейса
-  elements.btnShop.addEventListener('click', () => {
-    renderShop();
-    elements.shopOverlay.classList.remove('hidden');
-  });
-
-  elements.btnSpells.addEventListener('click', () => {
-    renderSpells();
-    elements.spellsOverlay.classList.remove('hidden');
-  });
-
-  elements.btnLeaderboard.addEventListener('click', () => {
-    renderLeaderboard();
-    elements.leaderboardOverlay.classList.remove('hidden');
-  });
-
-  // Закрытие модальных окон
-  document.querySelectorAll('.close-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.target.closest('.overlay').classList.add('hidden');
-    });
-  });
-
-  // Выбор факультета
-  document.querySelectorAll('.faculty-choice').forEach(choice => {
-    choice.addEventListener('click', () => {
-      gameState.faculty = choice.dataset.faculty;
-      elements.facultyOverlay.classList.add('hidden');
-      updateDisplay();
-    });
-  });
+  
+  // Применяем множитель заклинаний
+  const totalGain = Math.floor(baseGain * gameState.spellMultiplier);
+  gameState.galleons += totalGain;
+  gameState.totalClicks++;
+  
+  // Сбрасываем множитель после 10 кликов
+  if (gameState.spellMultiplier > 1 && gameState.totalClicks % 10 === 0) {
+    gameState.spellMultiplier = 1;
+    showAchievement("Эффект заклинания закончился");
+  }
+  
+  updateDisplay();
+  checkLevelUp();
 }
 
-// Рендер магазина
+// Проверка уровня
+function checkLevelUp() {
+  const neededGalleons = gameState.level * 100;
+  if (gameState.galleons >= neededGalleons && gameState.level < gameState.maxLevel) {
+    gameState.level++;
+    showAchievement(`Достигнут уровень ${gameState.level}!`);
+    checkSpellsUnlock();
+    updateDisplay();
+  }
+}
+
+// Разблокировка заклинаний
+function checkSpellsUnlock() {
+  if (gameState.level >= 2) {
+    gameState.spells.lumos.unlocked = true;
+  }
+  if (gameState.level >= 3) {
+    gameState.spells.wingardium.unlocked = true;
+  }
+}
+
+// Магазин улучшений
 function renderShop() {
   elements.shopContent.innerHTML = Object.entries(gameState.upgrades)
-    .map(([key, upgrade]) => `
-      <div class="upgrade-item">
-        <h3>${upgrade.name} (Ур. ${upgrade.level})</h3>
-        <p>+${upgrade.effect} галлеонов за клик</p>
-        <button class="buy-btn" data-upgrade="${key}">
-          Купить (${getUpgradePrice(key)} галлеонов)
-        </button>
-      </div>
-    `).join('');
-
+    .map(([key, upgrade]) => {
+      const price = calculateUpgradePrice(key);
+      const canAfford = gameState.galleons >= price;
+      
+      return `
+        <div class="upgrade-item">
+          <h3>${upgrade.name} (ур. ${upgrade.level})</h3>
+          <p>${upgrade.description}</p>
+          <button 
+            class="buy-btn" 
+            data-upgrade="${key}" 
+            ${!canAfford ? 'disabled' : ''}
+          >
+            Купить (${price} галлеонов)
+          </button>
+        </div>
+      `;
+    }).join('');
+    
+  // Назначение обработчиков кнопок покупки
   document.querySelectorAll('.buy-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const upgradeKey = e.target.dataset.upgrade;
@@ -112,44 +187,125 @@ function renderShop() {
 }
 
 // Покупка улучшения
-function buyUpgrade(key) {
-  const price = getUpgradePrice(key);
+function buyUpgrade(upgradeKey) {
+  const price = calculateUpgradePrice(upgradeKey);
+  
   if (gameState.galleons >= price) {
     gameState.galleons -= price;
-    gameState.upgrades[key].level++;
+    gameState.upgrades[upgradeKey].level++;
     updateDisplay();
     renderShop();
+    showAchievement(`Улучшено: ${gameState.upgrades[upgradeKey].name}!`);
   }
 }
 
-// Цена улучшения
-function getUpgradePrice(key) {
-  const upgrade = gameState.upgrades[key];
+// Расчет цены улучшения
+function calculateUpgradePrice(upgradeKey) {
+  const upgrade = gameState.upgrades[upgradeKey];
   return Math.floor(upgrade.basePrice * Math.pow(1.5, upgrade.level));
 }
 
-// Бонус от улучшений
-function getUpgradeBonus() {
-  return Object.values(gameState.upgrades)
-    .reduce((sum, upgrade) => sum + (upgrade.level * upgrade.effect), 0);
-}
-
-// Рендер заклинаний
+// Заклинания
 function renderSpells() {
-  elements.spellsContent.innerHTML = `
-    <div class="spell-item">
-      <h3>Заклинания будут доступны на 2 уровне!</h3>
-    </div>
-  `;
+  elements.spellsContent.innerHTML = Object.entries(gameState.spells)
+    .map(([key, spell]) => {
+      const canCast = spell.unlocked && !spell.active && gameState.galleons >= spell.cost;
+      
+      return `
+        <div class="spell-item ${spell.active ? 'active' : ''}">
+          <h3>${spell.name}</h3>
+          <p>${spell.description}</p>
+          <p>Стоимость: ${spell.cost} галлеонов</p>
+          <button 
+            class="cast-btn" 
+            data-spell="${key}" 
+            ${!canCast ? 'disabled' : ''}
+          >
+            ${spell.active ? 'Активно' : 'Произнести'}
+          </button>
+        </div>
+      `;
+    }).join('');
+    
+  // Назначение обработчиков кнопок заклинаний
+  document.querySelectorAll('.cast-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const spellKey = e.target.dataset.spell;
+      castSpell(spellKey);
+    });
+  });
 }
 
-// Рендер рейтинга
+// Использование заклинания
+function castSpell(spellKey) {
+  const spell = gameState.spells[spellKey];
+  
+  if (gameState.galleons >= spell.cost && !spell.active) {
+    gameState.galleons -= spell.cost;
+    spell.active = true;
+    spell.effect();
+    updateDisplay();
+    renderSpells();
+  }
+}
+
+// Таблица лидеров
 function renderLeaderboard() {
   elements.leaderboardContent.innerHTML = `
     <div class="leaderboard-item">
-      <h3>Ваш результат: ${gameState.galleons} галлеонов</h3>
+      <h3>Топ игроков</h3>
+      <p>1. Вы - ${gameState.galleons} галлеонов</p>
+      <p>2. Профессор Дамблдор - 10000</p>
+      <p>3. Гарри Поттер - 5000</p>
     </div>
   `;
+}
+
+// Показ достижений
+function showAchievement(text) {
+  elements.achievements.textContent = text;
+  setTimeout(() => {
+    elements.achievements.textContent = '';
+  }, 3000);
+}
+
+// Обработчики событий
+function setupEventListeners() {
+  // Клик по палочке
+  elements.clickWand.addEventListener('click', handleWandClick);
+  
+  // Кнопки интерфейса
+  elements.btnShop.addEventListener('click', () => {
+    renderShop();
+    showModal(elements.shopOverlay);
+  });
+  
+  elements.btnSpells.addEventListener('click', () => {
+    renderSpells();
+    showModal(elements.spellsOverlay);
+  });
+  
+  elements.btnLeaderboard.addEventListener('click', () => {
+    renderLeaderboard();
+    showModal(elements.leaderboardOverlay);
+  });
+  
+  // Закрытие модальных окон
+  document.querySelectorAll('.close-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      hideModal(e.target.closest('.overlay'));
+    });
+  });
+  
+  // Выбор факультета
+  document.querySelectorAll('.faculty-choice').forEach(choice => {
+    choice.addEventListener('click', () => {
+      gameState.faculty = choice.dataset.faculty;
+      hideModal(elements.facultyOverlay);
+      updateDisplay();
+      showAchievement(`Добро пожаловать в ${gameState.faculty}!`);
+    });
+  });
 }
 
 // Запуск игры
