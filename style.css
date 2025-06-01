@@ -1,4 +1,41 @@
-/* Стили для факультетов */
+* {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: url('assets/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 15px;
+  padding: 20px;
+  width: 320px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(122, 165, 85, 0.5);
+  border: 1px solid #7a5;
+}
+
+header h1 {
+  margin-bottom: 10px;
+  font-size: 1.8em;
+  color: #e3c36f;
+  text-shadow: 1px 1px 3px #000;
+}
+
 #faculty-display {
   font-size: 1em;
   margin-bottom: 5px;
@@ -6,6 +43,179 @@
   font-weight: bold;
 }
 
+#galleons, #level {
+  font-size: 1.2em;
+  margin: 5px 0 15px;
+  font-weight: 600;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.wand-container {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#click-wand {
+  width: 100px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: floatWand 3s ease-in-out infinite;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 0 5px rgba(227, 195, 111, 0.7));
+}
+
+@keyframes floatWand {
+  0%, 100% {
+    transform: translateY(0) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(5deg);
+  }
+}
+
+#click-wand:active {
+  animation: none;
+  transform: scale(0.9) rotate(-15deg) !important;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  justify-content: center;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1em;
+  border: none;
+  border-radius: 8px;
+  background-color: #7a5;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: #96b864;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+  transform: none;
+}
+
+#achievements {
+  margin-top: 15px;
+  min-height: 20px;
+  font-size: 0.9em;
+  color: #cfd9a6;
+  animation: fadeInOut 3.5s forwards;
+}
+
+/* Модальные окна */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: rgba(30, 32, 32, 0.95);
+  border-radius: 10px;
+  padding: 25px 20px 20px;
+  width: 90%;
+  max-width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid #7a5;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.close-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  background: #d33;
+  color: white;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 101;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #f44;
+  transform: scale(1.1);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Анимации */
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  10% { opacity: 1; transform: translateY(0); }
+  90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.bonus-effect {
+  position: fixed;
+  font-weight: bold;
+  color: #ffea00;
+  font-size: 1.2em;
+  pointer-events: none;
+  animation: floatUp 1s forwards;
+  text-shadow: 0 0 5px #000;
+  z-index: 50;
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-50px); }
+}
+
+/* Стили для факультетов */
 .faculty-choices {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -62,4 +272,25 @@
 .spell-card.cooldown {
   opacity: 0.6;
   pointer-events: none;
+}
+
+/* Адаптивность */
+@media (max-width: 400px) {
+  .container {
+    width: 95vw;
+    padding: 15px;
+  }
+  
+  #click-wand {
+    width: 80px;
+  }
+  
+  button {
+    padding: 8px 15px;
+    font-size: 0.9em;
+  }
+  
+  .faculty-choices {
+    grid-template-columns: 1fr;
+  }
 }
