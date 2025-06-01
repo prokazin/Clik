@@ -1,3 +1,8 @@
+/* Предотвращаем приближение при двойном тапе и масштабирование */
+* {
+  touch-action: manipulation;
+}
+
 body {
   font-family: Arial, sans-serif;
   padding: 20px;
@@ -45,10 +50,13 @@ h1, h2 {
   justify-self: center;
   user-select: none;
   transition: transform 0.2s ease;
+  outline: none;
 }
 
-#click-wand:active {
+#click-wand:active,
+#click-wand:focus {
   transform: scale(0.9) rotate(-10deg);
+  outline: none;
 }
 
 #crit-effect {
@@ -112,7 +120,7 @@ button:hover {
 }
 
 #btn-load-leaderboard {
-  grid-column: 1 / 2;
+  grid-column: 1 / -1;
   background-color: #2563eb;
   color: white;
   border: none;
@@ -122,23 +130,12 @@ button:hover {
   background-color: #1d4ed8;
 }
 
-#btn-close {
-  grid-column: 2 / 3;
-  background-color: #ef4444;
-  color: white;
-  border: none;
-}
-
-#btn-close:hover {
-  background-color: #dc2626;
-}
-
 @media (max-width: 480px) {
   body {
     grid-template-columns: 1fr;
   }
 
-  #buy-lumos, #activate-accio, #btn-load-leaderboard, #btn-close {
+  #buy-lumos, #activate-accio, #btn-load-leaderboard {
     grid-column: 1 / -1;
   }
 }
