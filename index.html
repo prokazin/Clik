@@ -10,26 +10,18 @@
   <div class="container">
     <header>
       <h1>Хогвартс</h1>
-      <div id="username"></div>
       <div id="galleons">Галлеоны: <span id="galleons-count">0</span></div>
       <div id="level">Уровень: <span id="level-count">1</span></div>
     </header>
 
     <main>
       <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
-      
       <div class="tabs">
-        <button class="tab-button active" data-tab="leaderboard-tab">Рейтинг</button>
-        <button class="tab-button" data-tab="shop-tab">Магазин</button>
+        <button id="tab-leaderboard" class="tab-button active">Рейтинг</button>
+        <button id="tab-shop" class="tab-button">Магазин</button>
       </div>
-
-      <div id="leaderboard-tab" class="tab-content">
-        <!-- Здесь будет рейтинг -->
-      </div>
-
-      <div id="shop-tab" class="tab-content hidden">
-        <!-- Здесь будет магазин -->
-      </div>
+      <div id="leaderboard" class="tab-content"></div>
+      <div id="shop" class="tab-content hidden"></div>
     </main>
 
     <footer>
