@@ -69,8 +69,15 @@ main {
   transform: scale(0.9) rotate(-10deg);
 }
 
-button#show-leaderboard {
-  padding: 10px 25px;
+.buttons-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+button#show-leaderboard,
+button#show-shop {
+  padding: 10px 20px;
   font-size: 1.1em;
   border: none;
   border-radius: 8px;
@@ -81,11 +88,13 @@ button#show-leaderboard {
   transition: background-color 0.3s ease;
 }
 
-button#show-leaderboard:hover {
+button#show-leaderboard:hover,
+button#show-shop:hover {
   background-color: #96b864;
 }
 
-#leaderboard {
+#leaderboard,
+#shop-items {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   padding: 10px;
@@ -98,8 +107,66 @@ button#show-leaderboard:hover {
   text-align: left;
 }
 
-.hidden {
-  display: none;
+/* Модальные окна */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.modal-content {
+  background: #222;
+  border-radius: 15px;
+  padding: 20px 30px;
+  width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 0 15px #7a5;
+  position: relative;
+  color: #d4e09b;
+}
+
+/* Кнопка закрыть */
+.close-modal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 1.5em;
+  background: none;
+  border: none;
+  color: #d4e09b;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* Элементы магазина */
+.shop-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+}
+
+.shop-item button {
+  background-color: #7a5;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 700;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.shop-item button:hover {
+  background-color: #96b864;
 }
 
 footer {
@@ -121,7 +188,12 @@ footer {
   #click-wand {
     width: 120px;
   }
-  button#show-leaderboard {
+  .buttons-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  button#show-leaderboard,
+  button#show-shop {
     font-size: 1em;
     padding: 8px 20px;
   }
