@@ -1,144 +1,90 @@
-/* Добавляем в начало, если нет */
-* {
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+body {
+  font-family: Arial, sans-serif;
+  background: url('hogwarts-bg.jpg') no-repeat center center fixed;
+  background-size: cover;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: url('assets/background.jpg') no-repeat center center fixed;
-  background-size: cover;
   color: #fff;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-}
-
-.container {
-  background: rgba(0,0,0,0.65);
-  border-radius: 15px;
-  padding: 20px 40px;
-  width: 320px;
   text-align: center;
-  box-shadow: 0 0 20px #7a5;
 }
 
-header h1 {
-  margin-bottom: 10px;
-  font-size: 1.8em;
-  color: #e3c36f;
-  text-shadow: 1px 1px 3px #000;
+#game-container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 12px;
 }
 
-#galleons, #level {
-  font-size: 1.2em;
-  margin: 5px 0 15px;
-  font-weight: 600;
-  text-shadow: 1px 1px 2px #000;
+#wand-container {
+  margin: 20px 0;
 }
 
-main {
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-gap: 15px;
-  justify-items: center;
-}
-
-#click-wand {
+#wand {
   width: 150px;
   cursor: pointer;
-  outline: none;
   user-select: none;
-  pointer-events: auto;
-  transition: transform 0.2s ease;
 }
 
-#click-wand:active {
-  transform: scale(0.9) rotate(-10deg);
+#stats p {
+  font-size: 1.2em;
+  margin: 8px 0;
 }
 
-.tabs {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
+#tabs {
+  margin: 20px 0;
 }
 
-.tab-button {
-  padding: 8px 16px;
-  font-size: 1em;
-  border: none;
-  border-radius: 8px;
-  background-color: #496834;
-  color: #fff;
+#tabs button {
+  font-size: 1.1em;
+  padding: 10px 20px;
+  margin: 0 10px;
   cursor: pointer;
-  box-shadow: 0 4px 8px #283317;
+  border: none;
+  border-radius: 6px;
+  background-color: #4b3b9b;
+  color: white;
   transition: background-color 0.3s ease;
 }
 
-.tab-button:hover {
-  background-color: #7a5;
-}
-
-.tab-button.active {
-  background-color: #7a5;
-  font-weight: 700;
+#tabs button:hover {
+  background-color: #6c58d6;
 }
 
 .tab-content {
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  padding: 10px;
-  width: 100%;
-  max-height: 200px;
-  overflow-y: auto;
-  color: #d4e09b;
-  font-weight: 600;
-  font-size: 1em;
+  border-radius: 8px;
+  padding: 15px;
   text-align: left;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
 .hidden {
   display: none;
 }
 
-footer {
-  margin-top: 20px;
+button:disabled {
+  background-color: #555;
+  cursor: not-allowed;
+  color: #ccc;
 }
 
-#achievements {
-  font-size: 1em;
-  color: #cfd9a6;
-  min-height: 20px;
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: white;
 }
 
-/* Адаптив */
-@media(max-width: 400px) {
-  .container {
-    width: 90vw;
-    padding: 15px 20px;
-  }
-  #click-wand {
-    width: 120px;
-  }
-  .tab-button {
-    font-size: 0.9em;
-    padding: 6px 12px;
-  }
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #666;
 }
 
-/* Эффект бонуса */
-.bonus-effect {
-  position: fixed;
-  font-weight: bold;
-  color: #ffea00;
-  text-shadow: 0 0 5px #fff;
-  pointer-events: none;
-  user-select: none;
-  z-index: 9999;
+th {
+  background-color: #4b3b9b;
+}
+
+tr:hover {
+  background-color: #6c58d6;
 }
