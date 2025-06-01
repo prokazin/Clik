@@ -1,0 +1,29 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 10px;
+}
+
+#click-wand, #buy-lumos, #activate-accio, #btn-load-leaderboard, #btn-close {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  cursor: pointer;
+}
+
+#crit-effect {
+  font-weight: bold;
+  font-size: 2em;
+  color: red;
+  opacity: 0;
+  transition: opacity 0.5s;
+  height: 40px;
+}
+
+#achievement-list, #leader-list {
+  list-style: none;
+  padding-left: 0;
+  max-width: 300px;
+  margin: 0 auto 20px auto;
+  text-align: left;
+}
