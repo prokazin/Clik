@@ -17,16 +17,30 @@
 
     <main>
       <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка" tabindex="0" />
-      <button id="btn-shop">Магазин</button>
-      <button id="btn-leaderboard">Рейтинг</button>
-
-      <div id="shop" class="hidden"></div>
-      <div id="leaderboard" class="hidden"></div>
+      <div class="buttons">
+        <button id="btn-shop">Магазин</button>
+        <button id="btn-leaderboard">Рейтинг</button>
+      </div>
     </main>
 
     <footer>
       <div id="achievements"></div>
     </footer>
+
+    <!-- Оверлеи магазина и рейтинга -->
+    <div id="shop-overlay" class="overlay hidden">
+      <div class="modal">
+        <div id="shop"></div>
+        <button class="close-btn">✕</button>
+      </div>
+    </div>
+
+    <div id="leaderboard-overlay" class="overlay hidden">
+      <div class="modal">
+        <div id="leaderboard"></div>
+        <button class="close-btn">✕</button>
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
