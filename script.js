@@ -8,7 +8,6 @@ const elements = {
   shop: document.getElementById('shop'),
   leaderboard: document.getElementById('leaderboard'),
   achievements: document.getElementById('achievements'),
-  username: document.getElementById('username'),
   shopOverlay: document.getElementById('shop-overlay'),
   leaderboardOverlay: document.getElementById('leaderboard-overlay')
 };
@@ -49,7 +48,6 @@ const gameState = {
 // Инициализация игры
 function initGame() {
   hideAllModals();
-  elements.username.textContent = window.Telegram?.WebApp?.initDataUnsafe?.user?.username || 'Игрок';
   loadProgress();
   setupEventListeners();
   updateDisplay();
@@ -227,10 +225,10 @@ function getUpgradePrice(key) {
 function renderLeaderboard() {
   const leaderboard = loadLeaderboard();
   elements.leaderboard.innerHTML = `
-    <h2>Топ игроков</h2>
+    <h2>Топ магов</h2>
     ${leaderboard.map((player, index) => `
       <div class="leaderboard-entry">
-        <span>${index + 1}. ${player.name}</span>
+        <span>${index + 1}. Маг</span>
         <span>${Math.floor(player.score)}</span>
       </div>
     `).join('')}
@@ -240,22 +238,19 @@ function renderLeaderboard() {
 // Сохранение в рейтинг
 function saveLeaderboard() {
   const leaderboard = loadLeaderboard();
-  const username = elements.username.textContent;
-  const existingIndex = leaderboard.findIndex(p => p.name === username);
+  const existingIndex = 0; // Всегда один "Маг" в рейтинге
 
-  if (existingIndex >= 0) {
-    if (gameState.galleons > leaderboard[existingIndex].score) {
-      leaderboard[existingIndex].score = gameState.galleons;
+  if (leaderboard.length > 0) {
+    if (gameState.galleons > leaderboard[0].score) {
+      leaderboard[0].score = gameState.galleons;
     }
   } else {
     leaderboard.push({ 
-      name: username, 
+      name: "Маг", 
       score: gameState.galleons 
     });
   }
 
-  leaderboard.sort((a, b) => b.score - a.score);
-  if (leaderboard.length > 10) leaderboard.length = 10;
   localStorage.setItem('hp_clicker_leaderboard', JSON.stringify(leaderboard));
 }
 
