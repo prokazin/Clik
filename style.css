@@ -100,7 +100,7 @@ button:active {
   animation: fadeInOut 3.5s forwards;
 }
 
-/* Оверлей и модальные окна */
+/* Модальные окна */
 .overlay {
   position: fixed;
   top: 0;
@@ -108,10 +108,14 @@ button:active {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.7);
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   z-index: 100;
+}
+
+.overlay.active {
+  display: flex;
 }
 
 .modal {
@@ -151,41 +155,8 @@ button:active {
   transform: scale(1.1);
 }
 
-/* Стили для магазина */
-#shop {
-  margin-top: 10px;
-}
-
-.upgrade-card {
-  background: rgba(46, 49, 49, 0.8);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-left: 3px solid #7a5;
-}
-
-.upgrade-card h3 {
-  color: #e3c36f;
-  margin-bottom: 5px;
-  font-size: 1.1em;
-}
-
-.upgrade-card p {
-  font-size: 0.9em;
-  margin-bottom: 8px;
-  color: #bfc9b8;
-}
-
-/* Стили для рейтинга */
-.leaderboard-entry {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid rgba(122, 165, 85, 0.3);
-}
-
-.leaderboard-entry:last-child {
-  border-bottom: none;
+.hidden {
+  display: none !important;
 }
 
 /* Анимации */
@@ -210,6 +181,7 @@ button:active {
     transform: translateY(-50px);
     opacity: 0;
   }
+}
 
 /* Адаптивность */
 @media (max-width: 400px) {
@@ -226,8 +198,4 @@ button:active {
     padding: 8px 15px;
     font-size: 0.9em;
   }
-
-/* Добавьте это в конец файла */
-.hidden {
-  display: none !important;
 }
