@@ -18,12 +18,13 @@
     <main>
       <div class="wand-container">
         <img id="click-wand" src="assets/wand.png" alt="Волшебная палочка">
+        <div id="wand-effects"></div>
       </div>
       <div class="buttons">
         <button id="btn-shop">Магазин</button>
         <button id="btn-spells">Заклинания</button>
+        <button id="btn-skills">Навыки</button>
         <button id="btn-leaderboard">Рейтинг</button>
-        <button id="btn-reset">Сбросить</button>
       </div>
     </main>
 
@@ -48,35 +49,19 @@
       </div>
     </div>
 
+    <div id="skills-overlay" class="overlay">
+      <div class="modal">
+        <button class="close-btn">×</button>
+        <h2>Развитие навыков</h2>
+        <div id="skills-content"></div>
+      </div>
+    </div>
+
     <div id="leaderboard-overlay" class="overlay">
       <div class="modal">
         <button class="close-btn">×</button>
         <h2>Рейтинг</h2>
         <div id="leaderboard-content"></div>
-      </div>
-    </div>
-
-    <div id="faculty-overlay" class="overlay">
-      <div class="modal">
-        <h2>Выберите факультет</h2>
-        <div class="faculty-choices">
-          <div class="faculty-choice griffindor" data-faculty="griffindor">
-            <h3>Гриффиндор</h3>
-            <p>+30% шанс критического удара</p>
-          </div>
-          <div class="faculty-choice slytherin" data-faculty="slytherin">
-            <h3>Слизерин</h3>
-            <p>+20% доход от улучшений</p>
-          </div>
-          <div class="faculty-choice ravenclaw" data-faculty="ravenclaw">
-            <h3>Когтевран</h3>
-            <p>-15% стоимость улучшений</p>
-          </div>
-          <div class="faculty-choice hufflepuff" data-faculty="hufflepuff">
-            <h3>Пуффендуй</h3>
-            <p>+25% эффективность автокликера</p>
-          </div>
-        </div>
       </div>
     </div>
   </div>
