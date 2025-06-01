@@ -6,6 +6,7 @@ const elements = {
   btnShop: document.getElementById('btn-shop'),
   btnSpells: document.getElementById('btn-spells'),
   btnLeaderboard: document.getElementById('btn-leaderboard'),
+  btnReset: document.getElementById('btn-reset'),
   shopContent: document.getElementById('shop-content'),
   spellsContent: document.getElementById('spells-content'),
   leaderboardContent: document.getElementById('leaderboard-content'),
@@ -19,10 +20,78 @@ const elements = {
 
 // Игровые данные
 const gameState = {
-  galleons: 100,
+  galleons: 0,
   level: 1,
-  maxLevel: 10,
+  maxLevel: 5,
+  levelThresholds: [0, 50, 150, 400, 1000, 2500],
   faculty: null,
+  faculties: {
+    griffindor: {
+      name: "Гриффиндор",
+      bonus: "+30% шанс критического удара",
+      effect: (baseChance) => baseChance * 1.3
+    },
+    slytherin: {
+      name: "Слизерин",
+      bonus: "+20% к доходу от улучшений",
+      effect: (baseValue) => Math.floor(baseValue * 1.2)
+    },
+    ravenclaw: {
+      name: "Когтевран",
+      bonus: "-15% стоимость улучшений",
+      effect: (basePrice) => Math.floor(basePrice * 0.85)
+    },
+    hufflepuff: {
+      name: "Пуффендуй",
+      bonus: "+25% эффективность автокликера",
+      effect: (baseValue) => Math.floor(baseValue * 1.25)
+    }
+  },
+  spells: {
+    lumos: {
+      name: "Люмос",
+      description: "+50% к доходу на 30 секунд",
+      cost: 100,
+      unlocked: false,
+      active: false,
+      duration: 30,
+      cooldown: 120,
+      lastUsed: 0,
+      effect: () => {
+        gameState.spellMultiplier = 1.5;
+        setTimeout(() => {
+          gameState.spellMultiplier = 1;
+          renderSpells();
+        }, 30000);
+      }
+    },
+    wingardium: {
+      name: "Вингардиум Левиоса",
+      description: "Удваивает скорость автокликера на 20 секунд",
+      cost: 150,
+      unlocked: false,
+      active: false,
+      duration: 20,
+      cooldown: 90,
+      lastUsed: 0,
+      effect: () => {
+        const originalInterval = gameState.autoClickInterval;
+        clearInterval(gameState.autoClickInterval);
+        
+        gameState.autoClickInterval = setInterval(() => {
+          autoClick();
+        }, originalInterval._idleTimeout / 2);
+        
+        setTimeout(() => {
+          clearInterval(gameState.autoClickInterval);
+          gameState.autoClickInterval = setInterval(() => {
+            autoClick();
+          }, originalInterval._idleTimeout);
+          renderSpells();
+        }, 20000);
+      }
+    }
+  },
   upgrades: {
     wand: { 
       level: 0, 
@@ -46,230 +115,413 @@ const gameState = {
       description: "+10 галлеонов за уровень" 
     }
   },
-  spells: {
-    lumos: {
-      name: "Люмос",
-      description: "+50% к доходу на 10 кликов",
-      cost: 100,
-      unlocked: false,
-      active: false,
-      effect: () => {
-        gameState.spellMultiplier = 1.5;
-        showAchievement("Активировано: Люмос!");
-      }
-    },
-    wingardium: {
-      name: "Вингардиум Левиоса",
-      description: "Дает 50 галлеонов сразу",
-      cost: 150,
-      unlocked: false,
-      active: false,
-      effect: () => {
-        gameState.galleons += 50;
-        updateDisplay();
-        showAchievement("+50 галлеонов!");
-      }
-    }
-  },
-  spellMultiplier: 1,
+  lastClickTime: 0,
+  autoClickInterval: null,
   totalClicks: 0,
-  autoClicker: null
+  spellMultiplier: 1
 };
 
 // Инициализация игры
 function initGame() {
+  loadProgress();
   setupEventListeners();
   updateDisplay();
   
-  // Показываем выбор факультета если не выбран
   if (!gameState.faculty) {
     showModal(elements.facultyOverlay);
   }
-  
-  // Разблокируем заклинания при достижении уровня
-  checkSpellsUnlock();
 }
 
-// Показ модального окна
-function showModal(modalElement) {
-  modalElement.classList.remove('hidden');
+// Загрузка прогресса
+function loadProgress() {
+  const saved = localStorage.getItem('hp_clicker_progress');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      gameState.galleons = Math.floor(data.galleons) || 0;
+      gameState.level = data.level || 1;
+      gameState.faculty = data.faculty || null;
+      
+      if (data.upgrades) {
+        Object.keys(data.upgrades).forEach(key => {
+          if (gameState.upgrades[key]) {
+            gameState.upgrades[key].level = data.upgrades[key].level || 0;
+          }
+        });
+      }
+      
+      if (data.spells) {
+        Object.keys(data.spells).forEach(key => {
+          if (gameState.spells[key]) {
+            gameState.spells[key].unlocked = data.spells[key].unlocked || false;
+            gameState.spells[key].lastUsed = data.spells[key].lastUsed || 0;
+          }
+        });
+      }
+      
+      if (gameState.level >= 2) {
+        startAutoClick(gameState.level >= 3 ? 2000 : 3000);
+      }
+    } catch (e) {
+      console.error("Ошибка загрузки:", e);
+      resetProgress();
+    }
+  }
 }
 
-// Скрытие модального окна
-function hideModal(modalElement) {
-  modalElement.classList.add('hidden');
+// Сохранение прогресса
+function saveProgress() {
+  const data = {
+    galleons: gameState.galleons,
+    level: gameState.level,
+    faculty: gameState.faculty,
+    upgrades: gameState.upgrades,
+    spells: gameState.spells,
+    timestamp: Date.now()
+  };
+  localStorage.setItem('hp_clicker_progress', JSON.stringify(data));
+  saveLeaderboard();
 }
 
 // Обновление интерфейса
 function updateDisplay() {
-  elements.galleonsCount.textContent = gameState.galleons;
+  elements.galleonsCount.textContent = Math.floor(gameState.galleons);
   elements.levelCount.textContent = gameState.level;
   
   if (gameState.faculty) {
-    elements.facultyDisplay.textContent = `Факультет: ${gameState.faculty}`;
+    elements.facultyDisplay.textContent = `Факультет: ${gameState.faculties[gameState.faculty].name}`;
   }
 }
 
 // Обработка клика по палочке
 function handleWandClick() {
-  let baseGain = 1;
+  const now = Date.now();
+  if (now - gameState.lastClickTime < 100) return;
   
-  // Добавляем бонус от улучшений
+  gameState.lastClickTime = now;
+  gameState.totalClicks++;
+
+  let baseGain = 1;
   Object.values(gameState.upgrades).forEach(upgrade => {
     baseGain += upgrade.level * upgrade.effect;
   });
-  
-  // Применяем множитель заклинаний
-  const totalGain = Math.floor(baseGain * gameState.spellMultiplier);
-  gameState.galleons += totalGain;
-  gameState.totalClicks++;
-  
-  // Сбрасываем множитель после 10 кликов
-  if (gameState.spellMultiplier > 1 && gameState.totalClicks % 10 === 0) {
-    gameState.spellMultiplier = 1;
-    showAchievement("Эффект заклинания закончился");
+
+  // Применяем эффект факультета
+  if (gameState.faculty === 'slytherin') {
+    baseGain = gameState.faculties.slytherin.effect(baseGain);
   }
-  
-  updateDisplay();
+
+  const multiplier = getRandomMultiplier() * gameState.spellMultiplier;
+  const gain = Math.floor(baseGain * multiplier);
+  gameState.galleons += gain;
+
+  showBonusEffect(gain, multiplier);
   checkLevelUp();
+  updateDisplay();
+  saveProgress();
+}
+
+// Случайный множитель с учетом факультета
+function getRandomMultiplier() {
+  let baseChance = 0.05;
+  
+  // Эффект Гриффиндора
+  if (gameState.faculty === 'griffindor') {
+    baseChance = gameState.faculties.griffindor.effect(baseChance);
+  }
+
+  const roll = Math.random();
+  if (roll < baseChance) return 5;
+  if (roll < baseChance * 3) return 3;
+  if (roll < 0.4) return 2;
+  return 1;
 }
 
 // Проверка уровня
 function checkLevelUp() {
-  const neededGalleons = gameState.level * 100;
-  if (gameState.galleons >= neededGalleons && gameState.level < gameState.maxLevel) {
+  if (gameState.level < gameState.maxLevel && 
+      gameState.galleons >= gameState.levelThresholds[gameState.level]) {
     gameState.level++;
-    showAchievement(`Достигнут уровень ${gameState.level}!`);
-    checkSpellsUnlock();
+    
+    // Разблокировка заклинаний
+    if (gameState.level >= 2) {
+      gameState.spells.lumos.unlocked = true;
+    }
+    if (gameState.level >= 3) {
+      gameState.spells.wingardium.unlocked = true;
+    }
+    
+    if (gameState.level === 2) {
+      startAutoClick(3000);
+      showAchievement("Открыт автокликер!");
+    } else if (gameState.level === 3) {
+      startAutoClick(2000);
+      showAchievement("Улучшенный автокликер!");
+    } else {
+      showAchievement(`Уровень ${gameState.level} достигнут!`);
+    }
+    
     updateDisplay();
+    saveProgress();
   }
 }
 
-// Разблокировка заклинаний
-function checkSpellsUnlock() {
-  if (gameState.level >= 2) {
-    gameState.spells.lumos.unlocked = true;
+// Автокликер с учетом факультета
+function startAutoClick(interval) {
+  if (gameState.autoClickInterval) {
+    clearInterval(gameState.autoClickInterval);
   }
-  if (gameState.level >= 3) {
-    gameState.spells.wingardium.unlocked = true;
+  
+  // Эффект Пуффендуя
+  if (gameState.faculty === 'hufflepuff') {
+    interval = gameState.faculties.hufflepuff.effect(interval);
   }
+  
+  gameState.autoClickInterval = setInterval(() => {
+    autoClick();
+  }, interval);
+}
+
+function autoClick() {
+  let baseGain = 1;
+  Object.values(gameState.upgrades).forEach(upgrade => {
+    baseGain += upgrade.level * upgrade.effect * 0.5;
+  });
+  
+  // Эффект Слизерина
+  if (gameState.faculty === 'slytherin') {
+    baseGain = gameState.faculties.slytherin.effect(baseGain);
+  }
+  
+  gameState.galleons += Math.floor(baseGain * gameState.spellMultiplier);
+  updateDisplay();
+  saveProgress();
 }
 
 // Магазин улучшений
 function renderShop() {
-  elements.shopContent.innerHTML = Object.entries(gameState.upgrades)
-    .map(([key, upgrade]) => {
-      const price = calculateUpgradePrice(key);
-      const canAfford = gameState.galleons >= price;
+  elements.shopContent.innerHTML = `
+    <h2>Магазин улучшений</h2>
+    ${Object.entries(gameState.upgrades).map(([key, item]) => {
+      let price = getUpgradePrice(key);
+      // Эффект Когтеврана
+      if (gameState.faculty === 'ravenclaw') {
+        price = gameState.faculties.ravenclaw.effect(price);
+      }
       
       return `
-        <div class="upgrade-item">
-          <h3>${upgrade.name} (ур. ${upgrade.level})</h3>
-          <p>${upgrade.description}</p>
+        <div class="upgrade-card">
+          <h3>${item.name} (Ур. ${item.level})</h3>
+          <p>${item.description}</p>
           <button 
-            class="buy-btn" 
-            data-upgrade="${key}" 
-            ${!canAfford ? 'disabled' : ''}
+            id="buy-${key}" 
+            ${gameState.galleons < price ? 'disabled' : ''}
           >
-            Купить (${price} галлеонов)
+            Улучшить (${price} галлеонов)
           </button>
         </div>
       `;
-    }).join('');
-    
-  // Назначение обработчиков кнопок покупки
-  document.querySelectorAll('.buy-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const upgradeKey = e.target.dataset.upgrade;
-      buyUpgrade(upgradeKey);
-    });
+    }).join('')}
+  `;
+
+  Object.keys(gameState.upgrades).forEach(key => {
+    const btn = document.getElementById(`buy-${key}`);
+    if (btn) {
+      btn.addEventListener('click', () => buyUpgrade(key));
+    }
   });
 }
 
 // Покупка улучшения
-function buyUpgrade(upgradeKey) {
-  const price = calculateUpgradePrice(upgradeKey);
+function buyUpgrade(key) {
+  let price = getUpgradePrice(key);
+  // Эффект Когтеврана
+  if (gameState.faculty === 'ravenclaw') {
+    price = gameState.faculties.ravenclaw.effect(price);
+  }
   
   if (gameState.galleons >= price) {
     gameState.galleons -= price;
-    gameState.upgrades[upgradeKey].level++;
+    gameState.upgrades[key].level++;
     updateDisplay();
     renderShop();
-    showAchievement(`Улучшено: ${gameState.upgrades[upgradeKey].name}!`);
+    saveProgress();
+    showAchievement(`${gameState.upgrades[key].name} улучшена!`);
   }
 }
 
-// Расчет цены улучшения
-function calculateUpgradePrice(upgradeKey) {
-  const upgrade = gameState.upgrades[upgradeKey];
-  return Math.floor(upgrade.basePrice * Math.pow(1.5, upgrade.level));
+// Цена улучшения
+function getUpgradePrice(key) {
+  const item = gameState.upgrades[key];
+  return Math.floor(item.basePrice * Math.pow(1.8, item.level));
 }
 
 // Заклинания
 function renderSpells() {
-  elements.spellsContent.innerHTML = Object.entries(gameState.spells)
-    .map(([key, spell]) => {
-      const canCast = spell.unlocked && !spell.active && gameState.galleons >= spell.cost;
+  elements.spellsContent.innerHTML = `
+    <h2>Заклинания</h2>
+    ${Object.entries(gameState.spells).map(([key, spell]) => {
+      const cooldownLeft = Math.max(0, spell.lastUsed + spell.cooldown * 1000 - Date.now());
+      const canCast = spell.unlocked && !spell.active && cooldownLeft <= 0 && gameState.galleons >= spell.cost;
       
       return `
-        <div class="spell-item ${spell.active ? 'active' : ''}">
+        <div class="spell-card ${spell.active ? 'active' : ''} ${cooldownLeft > 0 ? 'cooldown' : ''}">
           <h3>${spell.name}</h3>
           <p>${spell.description}</p>
           <p>Стоимость: ${spell.cost} галлеонов</p>
+          ${cooldownLeft > 0 ? 
+            `<p>Восстановление: ${Math.ceil(cooldownLeft/1000)}сек</p>` : ''}
           <button 
-            class="cast-btn" 
-            data-spell="${key}" 
+            id="cast-${key}" 
             ${!canCast ? 'disabled' : ''}
           >
             ${spell.active ? 'Активно' : 'Произнести'}
           </button>
         </div>
       `;
-    }).join('');
-    
-  // Назначение обработчиков кнопок заклинаний
-  document.querySelectorAll('.cast-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const spellKey = e.target.dataset.spell;
-      castSpell(spellKey);
-    });
+    }).join('')}
+  `;
+
+  Object.keys(gameState.spells).forEach(key => {
+    const btn = document.getElementById(`cast-${key}`);
+    if (btn) {
+      btn.addEventListener('click', () => castSpell(key));
+    }
   });
 }
 
-// Использование заклинания
+// Произнесение заклинания
 function castSpell(spellKey) {
   const spell = gameState.spells[spellKey];
-  
-  if (gameState.galleons >= spell.cost && !spell.active) {
-    gameState.galleons -= spell.cost;
-    spell.active = true;
-    spell.effect();
-    updateDisplay();
-    renderSpells();
+  if (!spell.unlocked || spell.active || 
+      gameState.galleons < spell.cost || 
+      Date.now() - spell.lastUsed < spell.cooldown * 1000) {
+    return;
   }
+
+  gameState.galleons -= spell.cost;
+  spell.active = true;
+  spell.lastUsed = Date.now();
+  
+  spell.effect();
+  
+  setTimeout(() => {
+    spell.active = false;
+    renderSpells();
+  }, spell.duration * 1000);
+  
+  updateDisplay();
+  renderSpells();
+  saveProgress();
+  showAchievement(`Заклинание ${spell.name} активировано!`);
 }
 
 // Таблица лидеров
 function renderLeaderboard() {
+  const leaderboard = loadLeaderboard();
   elements.leaderboardContent.innerHTML = `
-    <div class="leaderboard-item">
-      <h3>Топ игроков</h3>
-      <p>1. Вы - ${gameState.galleons} галлеонов</p>
-      <p>2. Профессор Дамблдор - 10000</p>
-      <p>3. Гарри Поттер - 5000</p>
-    </div>
+    <h2>Топ магов</h2>
+    ${leaderboard.map((player, index) => `
+      <div class="leaderboard-entry">
+        <span>${index + 1}. ${player.name}</span>
+        <span>${Math.floor(player.score)}</span>
+      </div>
+    `).join('')}
   `;
 }
 
-// Показ достижений
+// Сохранение в рейтинг
+function saveLeaderboard() {
+  const leaderboard = loadLeaderboard();
+  const playerName = gameState.faculty ? gameState.faculties[gameState.faculty].name : "Маг";
+  const existingIndex = leaderboard.findIndex(p => p.name === playerName);
+
+  if (existingIndex >= 0) {
+    if (gameState.galleons > leaderboard[existingIndex].score) {
+      leaderboard[existingIndex].score = gameState.galleons;
+    }
+  } else {
+    leaderboard.push({ 
+      name: playerName, 
+      score: gameState.galleons 
+    });
+  }
+
+  leaderboard.sort((a, b) => b.score - a.score);
+  if (leaderboard.length > 10) leaderboard.length = 10;
+  localStorage.setItem('hp_clicker_leaderboard', JSON.stringify(leaderboard));
+}
+
+// Загрузка рейтинга
+function loadLeaderboard() {
+  const data = localStorage.getItem('hp_clicker_leaderboard');
+  try {
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    console.error("Ошибка загрузки рейтинга:", e);
+    return [];
+  }
+}
+
+// Показать достижение
 function showAchievement(text) {
   elements.achievements.textContent = text;
   setTimeout(() => {
-    elements.achievements.textContent = '';
-  }, 3000);
+    if (elements.achievements.textContent === text) {
+      elements.achievements.textContent = '';
+    }
+  }, 3500);
 }
 
-// Обработчики событий
+// Эффект бонуса
+function showBonusEffect(gain, multiplier) {
+  const effect = document.createElement('div');
+  effect.className = 'bonus-effect';
+  effect.textContent = `+${gain}${multiplier > 1 ? ` (x${multiplier})` : ''}`;
+  
+  const rect = elements.clickWand.getBoundingClientRect();
+  effect.style.left = `${rect.left + rect.width / 2}px`;
+  effect.style.top = `${rect.top}px`;
+  
+  document.body.appendChild(effect);
+  setTimeout(() => effect.remove(), 1000);
+}
+
+// Сброс прогресса
+function resetProgress() {
+  if (confirm("Вы точно хотите сбросить весь прогресс?")) {
+    gameState.galleons = 0;
+    gameState.level = 1;
+    gameState.faculty = null;
+    Object.keys(gameState.upgrades).forEach(key => {
+      gameState.upgrades[key].level = 0;
+    });
+    Object.keys(gameState.spells).forEach(key => {
+      gameState.spells[key].unlocked = false;
+      gameState.spells[key].active = false;
+    });
+    
+    if (gameState.autoClickInterval) {
+      clearInterval(gameState.autoClickInterval);
+      gameState.autoClickInterval = null;
+    }
+    
+    updateDisplay();
+    saveProgress();
+    showAchievement("Прогресс сброшен!");
+  }
+}
+
+// Показать/скрыть модальное окно
+function showModal(modal) {
+  modal.classList.add('active');
+}
+
+function hideModal(modal) {
+  modal.classList.remove('active');
+}
+
+// Настройка событий
 function setupEventListeners() {
   // Клик по палочке
   elements.clickWand.addEventListener('click', handleWandClick);
@@ -290,6 +542,8 @@ function setupEventListeners() {
     showModal(elements.leaderboardOverlay);
   });
   
+  elements.btnReset.addEventListener('click', resetProgress);
+  
   // Закрытие модальных окон
   document.querySelectorAll('.close-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -303,7 +557,13 @@ function setupEventListeners() {
       gameState.faculty = choice.dataset.faculty;
       hideModal(elements.facultyOverlay);
       updateDisplay();
-      showAchievement(`Добро пожаловать в ${gameState.faculty}!`);
+      showAchievement(`Добро пожаловать в ${gameState.faculties[gameState.faculty].name}!`);
+      saveProgress();
+      
+      // Перезапускаем автокликер с новыми параметрами
+      if (gameState.level >= 2) {
+        startAutoClick(gameState.level >= 3 ? 2000 : 3000);
+      }
     });
   });
 }
