@@ -293,7 +293,7 @@ button:disabled::after {
   transform: scale(1);
 }
 
-.modal h2 {
+.modal-content-title {
   color: var(--primary-gold);
   margin-bottom: 20px;
   font-size: 1.5em;
