@@ -154,7 +154,7 @@ button:disabled {
 }
 
 .modal {
-  background: rgba(30, 32, 32, 0.95);
+  background: linear-gradient(135deg, #2c1a4a 0%, #1a1033 100%);
   border-radius: 10px;
   padding: 25px 20px 20px;
   width: 90%;
@@ -162,8 +162,23 @@ button:disabled {
   max-height: 80vh;
   overflow-y: auto;
   position: relative;
-  border: 1px solid #7a5;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  border: 2px solid #7a5;
+  box-shadow: 0 0 30px rgba(122, 165, 85, 0.6);
+}
+
+.modal h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #e3c36f;
+  margin-bottom: 20px;
+}
+
+.modal-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .close-btn {
@@ -215,114 +230,171 @@ button:disabled {
   100% { opacity: 0; transform: translateY(-50px); }
 }
 
-/* Эффекты навыков */
-.skill-effect {
-  position: absolute;
-  pointer-events: none;
-  z-index: 10;
-}
-
-@keyframes sparkle {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
-}
-
-@keyframes ripple {
-  0% { transform: scale(0); opacity: 1; }
-  100% { transform: scale(3); opacity: 0; }
-}
-
-/* Критический удар */
-.critical-hit {
-  position: fixed;
-  font-size: 24px;
-  font-weight: bold;
-  color: gold;
-  text-shadow: 0 0 5px #000;
-  animation: criticalFloat 1s forwards;
-  z-index: 100;
-}
-
-@keyframes criticalFloat {
-  0% { transform: translateY(0) scale(1); opacity: 1; }
-  100% { transform: translateY(-100px) scale(2); opacity: 0; }
-}
-
-/* Эффект факультета */
-.faculty-effect {
-  position: absolute;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, transparent 60%, rgba(255,215,0,0.3) 100%);
-  animation: facultyPulse 3s infinite;
-}
-
-@keyframes facultyPulse {
-  0% { transform: scale(0.8); opacity: 0.5; }
-  50% { transform: scale(1.2); opacity: 0.8; }
-  100% { transform: scale(0.8); opacity: 0.5; }
-}
-
 /* Стили для навыков */
-.skill-item {
-  background: rgba(70, 60, 90, 0.7);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-left: 3px solid #7a5;
+.skills-container {
+  display: grid;
+  gap: 15px;
 }
 
-.skill-item h3 {
-  color: #e3c36f;
-  margin-bottom: 5px;
+.skill-card {
+  background: rgba(40, 30, 60, 0.7);
+  border-radius: 12px;
+  padding: 15px;
+  border-left: 4px solid #7a5;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.skill-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(122, 165, 85, 0.3);
+}
+
+.skill-header {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-.skill-progress {
-  height: 10px;
-  background: #333;
-  border-radius: 5px;
-  margin: 5px 0;
-  overflow: hidden;
+.skill-title {
+  font-size: 1.1em;
+  color: #e3c36f;
+  margin: 0;
+}
+
+.skill-level {
+  background: #7a5;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.9em;
+}
+
+.skill-progress-container {
+  margin: 10px 0;
+}
+
+.skill-progress-text {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  margin-bottom: 5px;
 }
 
 .skill-progress-bar {
+  height: 8px;
+  background: #2a1a45;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.skill-progress-fill {
   height: 100%;
-  background: linear-gradient(to right, #7a5, #9c27b0);
-  transition: width 0.3s;
+  background: linear-gradient(90deg, #7a5, #9c27b0);
+  border-radius: 4px;
+  transition: width 0.5s ease;
 }
 
-/* Стили для магазина и заклинаний */
-.upgrade-item, .spell-item {
-  background: rgba(70, 60, 90, 0.7);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
-  border-left: 3px solid #7a5;
-}
-
-.upgrade-item h3, .spell-item h3 {
+.skill-price {
   color: #e3c36f;
-  margin-bottom: 5px;
+  font-weight: bold;
+  margin: 8px 0;
 }
 
-.spell-item.active {
-  background: rgba(90, 70, 110, 0.9);
-  box-shadow: 0 0 10px #9a6;
-  animation: pulse 1.5s infinite;
+.skill-upgrade-btn {
+  width: 100%;
+  padding: 8px;
+  background: linear-gradient(135deg, #7a5, #5a3);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.spell-item.cooldown {
-  opacity: 0.6;
-  pointer-events: none;
+.skill-upgrade-btn:disabled {
+  background: #444;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
-@keyframes pulse {
-  0% { box-shadow: 0 0 5px rgba(255,255,255,0.5); }
-  50% { box-shadow: 0 0 20px rgba(255,255,255,0.9); }
-  100% { box-shadow: 0 0 5px rgba(255,255,255,0.5); }
+/* Стили для выбора факультета */
+.faculty-modal {
+  max-width: 400px;
 }
+
+.faculty-subtitle {
+  text-align: center;
+  color: #b8a7d4;
+  margin-bottom: 20px;
+}
+
+.faculty-choices {
+  display: grid;
+  gap: 15px;
+}
+
+.faculty-choice {
+  display: flex;
+  align-items: center;
+  background: rgba(40, 30, 60, 0.7);
+  border-radius: 12px;
+  padding: 15px;
+  cursor: pointer;
+  transition: transform 0.3s;
+  gap: 15px;
+}
+
+.faculty-choice:hover {
+  transform: scale(1.02);
+}
+
+.faculty-badge {
+  width: 60px;
+  height: 60px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.faculty-badge img {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}
+
+.faculty-info h3 {
+  color: #e3c36f;
+  margin: 0 0 5px 0;
+}
+
+.faculty-bonus {
+  color: #7a5;
+  font-weight: bold;
+  margin: 5px 0;
+  font-size: 0.9em;
+}
+
+.faculty-desc {
+  color: #b8a7d4;
+  font-size: 0.8em;
+  margin: 0;
+}
+
+/* Цвета факультетов */
+.griffindor { border-left: 4px solid #ae0001; }
+.slytherin { border-left: 4px solid #2a623d; }
+.ravenclaw { border-left: 4px solid #222f5b; }
+.hufflepuff { border-left: 4px solid #ffdb00; }
+
+.griffindor .faculty-badge { background: rgba(174, 0, 1, 0.2); }
+.slytherin .faculty-badge { background: rgba(42, 98, 61, 0.2); }
+.ravenclaw .faculty-badge { background: rgba(34, 47, 91, 0.2); }
+.hufflepuff .faculty-badge { background: rgba(255, 219, 0, 0.2); }
 
 /* Адаптивность */
 @media (max-width: 400px) {
