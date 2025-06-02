@@ -294,11 +294,9 @@ function handleWandClick(e) {
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
   
-  // Создаем базовые эффекты
   createEffect('sparkle', {x, y});
   if (Math.random() > 0.7) createEffect('ripple', {x, y});
   
-  // Логика клика
   const now = Date.now();
   if (now - gameState.lastClickTime < 100) return;
   
@@ -310,7 +308,6 @@ function handleWandClick(e) {
     baseGain += upgrade.level * upgrade.effect;
   });
 
-  // Критический удар
   const critChance = 0.05 + gameState.skills.accuracy.effect(gameState.skills.accuracy.level);
   const isCritical = Math.random() < critChance;
   let multiplier = 1;
@@ -350,7 +347,6 @@ function checkLevelUp() {
       gameState.galleons >= gameState.levelThresholds[gameState.level]) {
     gameState.level++;
     
-    // Разблокировка заклинаний
     if (gameState.level >= 2) gameState.spells.lumos.unlocked = true;
     if (gameState.level >= 3) gameState.spells.wingardium.unlocked = true;
     if (gameState.level >= 4) gameState.spells.expelliarmus.unlocked = true;
@@ -376,20 +372,17 @@ function startAutoClick(baseInterval) {
     clearInterval(gameState.autoClickInterval);
   }
   
-  // Учитываем навык скорости
   let interval = baseInterval;
   if (gameState.skills.speed.level > 0) {
     interval *= gameState.skills.speed.effect(gameState.skills.speed.level);
   }
   
-  // Учитываем факультет
   if (gameState.faculty === 'hufflepuff') {
     interval = gameState.faculties.hufflepuff.effect(interval);
   }
   
   gameState.autoClickInterval = setInterval(() => {
     autoClick();
-    // Эффект автоклика
     const rect = elements.clickWand.getBoundingClientRect();
     createEffect('sparkle', {
       x: rect.left + rect.width/2,
@@ -404,12 +397,10 @@ function autoClick() {
     baseGain += upgrade.level * upgrade.effect * 0.5;
   });
   
-  // Эффект Слизерина
   if (gameState.faculty === 'slytherin') {
     baseGain = gameState.faculties.slytherin.effect(baseGain);
   }
   
-  // Применяем все активные эффекты
   let totalGain = baseGain * gameState.spellMultiplier;
   if (gameState.autoClickBoost) totalGain *= gameState.autoClickBoost;
   
@@ -421,10 +412,9 @@ function autoClick() {
 // Магазин улучшений
 function renderShop() {
   elements.shopContent.innerHTML = `
-    <h2>Магазин улучшений</h2>
+    <h2 class="modal-content-title">Магазин улучшений</h2>
     ${Object.entries(gameState.upgrades).map(([key, item]) => {
       let price = getUpgradePrice(key);
-      // Эффект Когтеврана
       if (gameState.faculty === 'ravenclaw') {
         price = gameState.faculties.ravenclaw.effect(price);
       }
@@ -455,7 +445,6 @@ function renderShop() {
 // Покупка улучшения
 function buyUpgrade(key) {
   let price = getUpgradePrice(key);
-  // Эффект Когтеврана
   if (gameState.faculty === 'ravenclaw') {
     price = gameState.faculties.ravenclaw.effect(price);
   }
@@ -479,7 +468,7 @@ function getUpgradePrice(key) {
 // Заклинания
 function renderSpells() {
   elements.spellsContent.innerHTML = `
-    <h2>Заклинания</h2>
+    <h2 class="modal-content-title">Заклинания</h2>
     ${Object.entries(gameState.spells).map(([key, spell]) => {
       const cooldownLeft = Math.max(0, spell.lastUsed + spell.cooldown * 1000 - Date.now());
       const canCast = spell.unlocked && !spell.active && cooldownLeft <= 0 && gameState.galleons >= spell.cost;
@@ -524,15 +513,12 @@ function castSpell(key) {
   spell.lastUsed = Date.now();
   spell.active = true;
   
-  // Применяем эффект
   spell.effect();
   
-  // Завершаем эффект через duration
   if (spell.duration) {
     setTimeout(() => {
       spell.active = false;
       
-      // Сбрасываем множители
       if (key === 'lumos') gameState.spellMultiplier = 1;
       if (key === 'wingardium') gameState.autoClickBoost = 1;
       
@@ -550,7 +536,7 @@ function castSpell(key) {
 // Навыки
 function renderSkills() {
   elements.skillsContent.innerHTML = `
-    <h2>Навыки</h2>
+    <h2 class="modal-content-title">Навыки</h2>
     ${Object.entries(gameState.skills).map(([key, skill]) => {
       const cost = skill.cost(skill.level);
       const canUpgrade = skill.level < skill.maxLevel && gameState.galleons >= cost;
@@ -601,7 +587,6 @@ function upgradeSkill(key) {
     gameState.galleons -= cost;
     skill.level++;
     
-    // Перезапускаем автокликер если улучшили скорость
     if (key === 'speed' && gameState.level >= 2) {
       startAutoClick(gameState.level >= 3 ? 2000 : 3000);
     }
@@ -617,7 +602,7 @@ function upgradeSkill(key) {
 function renderLeaderboard() {
   const leaderboard = getLeaderboard();
   elements.leaderboardContent.innerHTML = `
-    <h2>Таблица лидеров</h2>
+    <h2 class="modal-content-title">Таблица лидеров</h2>
     <table class="leaderboard-table">
       <tr>
         <th>Место</th>
@@ -658,7 +643,6 @@ function saveLeaderboard() {
     timestamp: Date.now()
   };
   
-  // Добавляем или обновляем запись
   const existingIndex = leaderboard.findIndex(entry => entry.name === playerData.name);
   if (existingIndex >= 0) {
     leaderboard[existingIndex] = playerData;
@@ -666,7 +650,6 @@ function saveLeaderboard() {
     leaderboard.push(playerData);
   }
   
-  // Сортируем и обрезаем до топ-10
   leaderboard.sort((a, b) => b.level - a.level || b.galleons - a.galleons);
   const top10 = leaderboard.slice(0, 10);
   
@@ -680,7 +663,6 @@ function selectFaculty(faculty) {
   hideModal(elements.facultyOverlay);
   createFacultyEffect();
   
-  // Применяем бонусы факультета
   if (faculty === 'hufflepuff' && gameState.level >= 2) {
     startAutoClick(gameState.level >= 3 ? 2000 : 3000);
   }
@@ -724,49 +706,50 @@ function resetProgress() {
 
 // Настройка обработчиков событий
 function setupEventListeners() {
-  // Основные элементы
   elements.clickWand.addEventListener('click', handleWandClick);
   elements.btnReset.addEventListener('click', resetProgress);
   
-  // Кнопки меню
   elements.btnShop.addEventListener('click', () => {
-    renderShop();
-    showModal(elements.shopOverlay);
+    if (!elements.shopOverlay.classList.contains('active')) {
+      renderShop();
+      showModal(elements.shopOverlay);
+    }
   });
   
   elements.btnSpells.addEventListener('click', () => {
-    renderSpells();
-    showModal(elements.spellsOverlay);
+    if (!elements.spellsOverlay.classList.contains('active')) {
+      renderSpells();
+      showModal(elements.spellsOverlay);
+    }
   });
   
   elements.btnSkills.addEventListener('click', () => {
-    renderSkills();
-    showModal(elements.skillsOverlay);
+    if (!elements.skillsOverlay.classList.contains('active')) {
+      renderSkills();
+      showModal(elements.skillsOverlay);
+    }
   });
   
   elements.btnLeaderboard.addEventListener('click', () => {
-    renderLeaderboard();
-    showModal(elements.leaderboardOverlay);
+    if (!elements.leaderboardOverlay.classList.contains('active')) {
+      renderLeaderboard();
+      showModal(elements.leaderboardOverlay);
+    }
   });
   
-  // Кнопки закрытия модальных окон
   document.querySelectorAll('.close-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       hideModal(e.target.closest('.overlay'));
     });
   });
   
-  // Выбор факультета
   document.querySelectorAll('.faculty-choice').forEach(btn => {
     btn.addEventListener('click', (e) => {
       selectFaculty(e.currentTarget.dataset.faculty);
     });
   });
   
-  // Автосохранение каждые 30 секунд
   setInterval(saveProgress, 30000);
-  
-  // Обработка закрытия страницы
   window.addEventListener('beforeunload', saveProgress);
 }
 
