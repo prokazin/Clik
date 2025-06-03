@@ -24,6 +24,10 @@
           <div class="stat-label">Уровень</div>
           <div class="stat-value" id="level-count">1</div>
         </div>
+        <div class="stat-item">
+          <div class="stat-label">Клики</div>
+          <div class="stat-value" id="clicks-count">0</div>
+        </div>
       </div>
     </header>
 
@@ -37,14 +41,19 @@
         <button id="btn-spells" class="animate__animated animate__fadeInRight">Заклинания</button>
         <button id="btn-skills" class="animate__animated animate__fadeInLeft">Навыки</button>
         <button id="btn-leaderboard" class="animate__animated animate__fadeInRight">Рейтинг</button>
-        <button id="btn-reset" class="animate__animated animate__fadeInUp">Сбросить</button>
+        <button id="btn-daily" class="animate__animated animate__fadeInLeft">Ежедневная награда</button>
+        <button id="btn-reset" class="animate__animated animate__fadeInRight">Сбросить</button>
       </div>
     </main>
 
     <footer>
       <div id="achievements"></div>
+      <audio id="click-sound" src="assets/sounds/click.mp3" preload="auto"></audio>
+      <audio id="spell-sound" src="assets/sounds/spell.mp3" preload="auto"></audio>
+      <audio id="critical-sound" src="assets/sounds/critical.mp3" preload="auto"></audio>
     </footer>
 
+    <!-- Модальные окна -->
     <div id="shop-overlay" class="overlay">
       <div class="modal">
         <button class="close-btn">×</button>
@@ -70,6 +79,13 @@
       <div class="modal">
         <button class="close-btn">×</button>
         <div id="leaderboard-content"></div>
+      </div>
+    </div>
+
+    <div id="daily-overlay" class="overlay">
+      <div class="modal">
+        <button class="close-btn">×</button>
+        <div id="daily-content"></div>
       </div>
     </div>
 
