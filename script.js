@@ -873,3 +873,64 @@ function setupEventListeners() {
 
 // Инициализация при загрузке
 window.addEventListener('DOMContentLoaded', initGame);
+
+// Глобальные переменные
+let playerName = localStorage.getItem('hp_player_name') || null;
+const elements = {
+  // Все DOM элементы
+};
+
+const gameState = {
+  // Состояние игры
+};
+
+// Инициализация игры
+function initGame() {
+  loadProgress();
+  setupEventListeners();
+  updateDisplay();
+  
+  if (!gameState.faculty) {
+    showModal(elements.facultyOverlay);
+  } else {
+    createFacultyEffect();
+  }
+  
+  checkDailyReward();
+}
+
+// Получение имени игрока
+function ensurePlayerName() {
+  if (!playerName) {
+    playerName = prompt("Введите ваше имя для таблицы лидеров:") || "Аноним";
+    localStorage.setItem('hp_player_name', playerName);
+  }
+  return playerName;
+}
+
+// Сохранение в таблицу лидеров
+function saveLeaderboard() {
+  const leaderboard = getLeaderboard();
+  const playerData = {
+    name: ensurePlayerName(),
+    level: gameState.level,
+    galleons: gameState.galleons,
+    faculty: gameState.faculty,
+    timestamp: Date.now()
+  };
+  
+  const existingIndex = leaderboard.findIndex(entry => entry.name === playerData.name);
+  if (existingIndex >= 0) {
+    leaderboard[existingIndex] = playerData;
+  } else {
+    leaderboard.push(playerData);
+  }
+  
+  leaderboard.sort((a, b) => b.level - a.level || b.galleons - a.galleons);
+  const top10 = leaderboard.slice(0, 10);
+  
+  localStorage.setItem('hp_clicker_leaderboard', JSON.stringify(top10));
+}
+
+// Инициализация при загрузке
+window.addEventListener('DOMContentLoaded', initGame);
