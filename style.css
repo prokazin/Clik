@@ -1,8 +1,8 @@
 :root {
   --primary-gold: #e3c36f;
   --secondary-gold: #ffdb00;
-  --dark-purple: #1a1033;
-  --light-purple: #2c1a4a;
+  --dark-purple: rgba(26, 16, 51, 0.7);
+  --light-purple: rgba(44, 26, 74, 0.7);
   --accent-green: #7a5;
   --griffindor-red: #ae0001;
   --slytherin-green: #2a623d;
@@ -22,7 +22,7 @@
 
 body {
   font-family: 'Cinzel', 'Segoe UI', serif;
-  background: url('assets/background.jpg') no-repeat center center fixed;
+  background: url('../assets/images/background.jpg') no-repeat center center fixed;
   background-size: cover;
   color: #fff;
   min-height: 100vh;
@@ -34,7 +34,7 @@ body {
 }
 
 .container {
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5);
   border-radius: 15px;
   padding: 25px;
   width: 350px;
@@ -45,6 +45,7 @@ body {
   position: relative;
   overflow: hidden;
   z-index: 1;
+  backdrop-filter: blur(5px);
 }
 
 .container::before {
@@ -259,7 +260,7 @@ button:disabled::after {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0, 0, 0, 0.7);
   display: none;
   justify-content: center;
   align-items: center;
@@ -750,78 +751,4 @@ button:disabled::after {
   button {
     padding: 10px 15px;
   }
-}
-
-:root {
-  --primary-gold: #e3c36f;
-  --secondary-gold: #ffdb00;
-  --dark-purple: rgba(26, 16, 51, 0.7);
-  --light-purple: rgba(44, 26, 74, 0.7);
-  --accent-green: #7a5;
-  --griffindor-red: #ae0001;
-  --slytherin-green: #2a623d;
-  --ravenclaw-blue: #222f5b;
-  --hufflepuff-yellow: #ffdb00;
-  --spell-blue: #4d8bf0;
-}
-
-* {
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: 'Cinzel', 'Segoe UI', serif;
-  background: url('../assets/images/background.jpg') no-repeat center center fixed;
-  background-size: cover;
-  color: #fff;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  overflow-x: hidden;
-}
-
-.container {
-  background: rgba(0, 0, 0, 0.5);
-  border-radius: 15px;
-  padding: 25px;
-  width: 350px;
-  max-width: 95vw;
-  text-align: center;
-  box-shadow: 0 0 30px rgba(122, 165, 85, 0.6);
-  border: 2px solid var(--primary-gold);
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-  backdrop-filter: blur(5px);
-}
-
-.container::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  background: linear-gradient(45deg, 
-    var(--primary-gold), 
-    var(--secondary-gold), 
-    var(--primary-gold));
-  background-size: 200% 200%;
-  z-index: -1;
-  border-radius: 20px;
-  animation: gradientBorder 4s ease infinite;
-  opacity: 0.3;
-}
-
-@keyframes gradientBorder {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
