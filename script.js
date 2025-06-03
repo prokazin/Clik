@@ -2,16 +2,19 @@
 const elements = {
   galleonsCount: document.getElementById('galleons-count'),
   levelCount: document.getElementById('level-count'),
+  clicksCount: document.getElementById('clicks-count'),
   clickWand: document.getElementById('click-wand'),
   btnShop: document.getElementById('btn-shop'),
   btnSpells: document.getElementById('btn-spells'),
   btnSkills: document.getElementById('btn-skills'),
   btnLeaderboard: document.getElementById('btn-leaderboard'),
+  btnDaily: document.getElementById('btn-daily'),
   btnReset: document.getElementById('btn-reset'),
   shopContent: document.getElementById('shop-content'),
   spellsContent: document.getElementById('spells-content'),
   skillsContent: document.getElementById('skills-content'),
   leaderboardContent: document.getElementById('leaderboard-content'),
+  dailyContent: document.getElementById('daily-content'),
   achievements: document.getElementById('achievements'),
   facultyDisplay: document.getElementById('faculty-display'),
   shopOverlay: document.getElementById('shop-overlay'),
@@ -19,7 +22,11 @@ const elements = {
   skillsOverlay: document.getElementById('skills-overlay'),
   facultyOverlay: document.getElementById('faculty-overlay'),
   leaderboardOverlay: document.getElementById('leaderboard-overlay'),
-  wandEffects: document.getElementById('wand-effects')
+  dailyOverlay: document.getElementById('daily-overlay'),
+  wandEffects: document.getElementById('wand-effects'),
+  clickSound: document.getElementById('click-sound'),
+  spellSound: document.getElementById('spell-sound'),
+  criticalSound: document.getElementById('critical-sound')
 };
 
 // Игровые данные
@@ -65,6 +72,7 @@ const gameState = {
         gameState.spellMultiplier = 1.5;
         showAchievement("Яркий свет Люмос освещает ваш путь!");
         createSpellEffect('lumos');
+        playSound('spell');
       }
     },
     wingardium: {
@@ -80,6 +88,7 @@ const gameState = {
         gameState.autoClickBoost = 2;
         showAchievement("Предметы парят в воздухе!");
         createSpellEffect('wingardium');
+        playSound('spell');
       }
     },
     expelliarmus: {
@@ -93,6 +102,7 @@ const gameState = {
         gameState.galleons += 200;
         showAchievement("Золото улетает прямиком в ваш карман!");
         createSpellEffect('expelliarmus');
+        playSound('spell');
         updateDisplay();
       }
     }
@@ -151,7 +161,12 @@ const gameState = {
   autoClickBoost: 1,
   totalClicks: 0,
   criticalHits: 0,
-  spellMultiplier: 1
+  spellMultiplier: 1,
+  dailyRewards: {
+    streak: 0,
+    lastClaimed: null,
+    rewards: [50, 100, 150, 200, 300, 500, 1000]
+  }
 };
 
 // Инициализация игры
@@ -165,6 +180,9 @@ function initGame() {
   } else {
     createFacultyEffect();
   }
+  
+  // Проверка ежедневной награды при загрузке
+  checkDailyReward();
 }
 
 function createFacultyEffect() {
@@ -180,6 +198,20 @@ function createSpellEffect(type) {
   setTimeout(() => effect.remove(), 1000);
 }
 
+// Воспроизведение звуков
+function playSound(type) {
+  if (type === 'click') {
+    elements.clickSound.currentTime = 0;
+    elements.clickSound.play();
+  } else if (type === 'spell') {
+    elements.spellSound.currentTime = 0;
+    elements.spellSound.play();
+  } else if (type === 'critical') {
+    elements.criticalSound.currentTime = 0;
+    elements.criticalSound.play();
+  }
+}
+
 // Загрузка прогресса
 function loadProgress() {
   const saved = localStorage.getItem('hp_clicker_progress');
@@ -189,6 +221,8 @@ function loadProgress() {
       gameState.galleons = Math.floor(data.galleons) || 0;
       gameState.level = data.level || 1;
       gameState.faculty = data.faculty || null;
+      gameState.totalClicks = data.totalClicks || 0;
+      gameState.criticalHits = data.criticalHits || 0;
       
       if (data.upgrades) {
         Object.keys(data.upgrades).forEach(key => {
@@ -215,6 +249,11 @@ function loadProgress() {
         });
       }
       
+      if (data.dailyRewards) {
+        gameState.dailyRewards.streak = data.dailyRewards.streak || 0;
+        gameState.dailyRewards.lastClaimed = data.dailyRewards.lastClaimed || null;
+      }
+      
       if (gameState.level >= 2) {
         startAutoClick(gameState.level >= 3 ? 2000 : 3000);
       }
@@ -234,6 +273,9 @@ function saveProgress() {
     upgrades: gameState.upgrades,
     spells: gameState.spells,
     skills: gameState.skills,
+    totalClicks: gameState.totalClicks,
+    criticalHits: gameState.criticalHits,
+    dailyRewards: gameState.dailyRewards,
     timestamp: Date.now()
   };
   localStorage.setItem('hp_clicker_progress', JSON.stringify(data));
@@ -244,6 +286,7 @@ function saveProgress() {
 function updateDisplay() {
   elements.galleonsCount.textContent = Math.floor(gameState.galleons);
   elements.levelCount.textContent = gameState.level;
+  elements.clicksCount.textContent = gameState.totalClicks;
   
   if (gameState.faculty) {
     elements.facultyDisplay.textContent = `Факультет: ${gameState.faculties[gameState.faculty].name}`;
@@ -296,6 +339,7 @@ function handleWandClick(e) {
   
   createEffect('sparkle', {x, y});
   if (Math.random() > 0.7) createEffect('ripple', {x, y});
+  playSound('click');
   
   const now = Date.now();
   if (now - gameState.lastClickTime < 100) return;
@@ -309,6 +353,10 @@ function handleWandClick(e) {
   });
 
   const critChance = 0.05 + gameState.skills.accuracy.effect(gameState.skills.accuracy.level);
+  if (gameState.faculty === 'griffindor') {
+    critChance = gameState.faculties.griffindor.effect(critChance);
+  }
+  
   const isCritical = Math.random() < critChance;
   let multiplier = 1;
   
@@ -316,6 +364,7 @@ function handleWandClick(e) {
     multiplier = 2 + gameState.skills.magicPower.effect(gameState.skills.magicPower.level);
     gameState.criticalHits++;
     createEffect('critical', {x: e.clientX, y: e.clientY, multiplier});
+    playSound('critical');
   }
 
   const totalGain = Math.floor(baseGain * multiplier * gameState.spellMultiplier);
@@ -656,6 +705,78 @@ function saveLeaderboard() {
   localStorage.setItem('hp_clicker_leaderboard', JSON.stringify(top10));
 }
 
+// Ежедневные награды
+function checkDailyReward() {
+  const today = new Date().toDateString();
+  const lastClaimed = gameState.dailyRewards.lastClaimed ? 
+    new Date(gameState.dailyRewards.lastClaimed).toDateString() : null;
+  
+  if (lastClaimed === today) {
+    return; // Уже получали награду сегодня
+  }
+  
+  // Проверяем, является ли это последовательным днем
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toDateString();
+  
+  if (!lastClaimed || lastClaimed !== yesterdayStr) {
+    gameState.dailyRewards.streak = 0; // Сбрасываем серию
+  }
+  
+  // Показываем кнопку ежедневной награды
+  elements.btnDaily.style.display = 'block';
+}
+
+function renderDailyReward() {
+  const streak = gameState.dailyRewards.streak;
+  const reward = gameState.dailyRewards.rewards[Math.min(streak, gameState.dailyRewards.rewards.length - 1)];
+  
+  elements.dailyContent.innerHTML = `
+    <div class="daily-reward">
+      <h3>Ежедневная награда</h3>
+      <p>День ${streak + 1}: ${reward} галлеонов</p>
+      
+      <div class="daily-streak">
+        ${gameState.dailyRewards.rewards.map((_, i) => `
+          <div class="streak-day ${i < streak ? 'active' : ''} ${i === streak ? 'current' : ''}">
+            ${i + 1}
+          </div>
+        `).join('')}
+      </div>
+      
+      <button id="claim-daily">Получить награду</button>
+    </div>
+  `;
+  
+  document.getElementById('claim-daily').addEventListener('click', claimDailyReward);
+}
+
+function claimDailyReward() {
+  const today = new Date().toDateString();
+  const lastClaimed = gameState.dailyRewards.lastClaimed ? 
+    new Date(gameState.dailyRewards.lastClaimed).toDateString() : null;
+  
+  if (lastClaimed === today) {
+    showAchievement("Вы уже получили награду сегодня!");
+    return;
+  }
+  
+  const streak = gameState.dailyRewards.streak;
+  const reward = gameState.dailyRewards.rewards[Math.min(streak, gameState.dailyRewards.rewards.length - 1)];
+  
+  gameState.galleons += reward;
+  gameState.dailyRewards.streak++;
+  gameState.dailyRewards.lastClaimed = new Date().toISOString();
+  
+  showAchievement(`Получена ежедневная награда: ${reward} галлеонов!`);
+  updateDisplay();
+  saveProgress();
+  
+  hideModal(elements.dailyOverlay);
+  elements.btnDaily.style.display = 'none';
+}
+
 // Выбор факультета
 function selectFaculty(faculty) {
   gameState.faculty = faculty;
@@ -710,31 +831,28 @@ function setupEventListeners() {
   elements.btnReset.addEventListener('click', resetProgress);
   
   elements.btnShop.addEventListener('click', () => {
-    if (!elements.shopOverlay.classList.contains('active')) {
-      renderShop();
-      showModal(elements.shopOverlay);
-    }
+    renderShop();
+    showModal(elements.shopOverlay);
   });
   
   elements.btnSpells.addEventListener('click', () => {
-    if (!elements.spellsOverlay.classList.contains('active')) {
-      renderSpells();
-      showModal(elements.spellsOverlay);
-    }
+    renderSpells();
+    showModal(elements.spellsOverlay);
   });
   
   elements.btnSkills.addEventListener('click', () => {
-    if (!elements.skillsOverlay.classList.contains('active')) {
-      renderSkills();
-      showModal(elements.skillsOverlay);
-    }
+    renderSkills();
+    showModal(elements.skillsOverlay);
   });
   
   elements.btnLeaderboard.addEventListener('click', () => {
-    if (!elements.leaderboardOverlay.classList.contains('active')) {
-      renderLeaderboard();
-      showModal(elements.leaderboardOverlay);
-    }
+    renderLeaderboard();
+    showModal(elements.leaderboardOverlay);
+  });
+  
+  elements.btnDaily.addEventListener('click', () => {
+    renderDailyReward();
+    showModal(elements.dailyOverlay);
   });
   
   document.querySelectorAll('.close-btn').forEach(btn => {
